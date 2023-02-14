@@ -1,3 +1,3 @@
 # hospital-management
 
-Project Team: 
+Project Team: Rupanti, Miles, Audrey
