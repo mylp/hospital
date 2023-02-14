@@ -1,6 +1,5 @@
 
 import mysql.connector
-import unittest
 
 mydb = mysql.connector.connect(
     host="localhost",
@@ -11,6 +10,11 @@ mydb = mysql.connector.connect(
 
 cursor = mydb.cursor()
 mydb.autocommit = True
+
+def main():
+    cursor.callproc('get_hospitals')
+    for result in cursor.stored_results():
+        print(result.fetchall())
 
 def main():
     cursor.callproc('get_hospitals')
