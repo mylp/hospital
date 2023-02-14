@@ -8,19 +8,16 @@ mydb = mysql.connector.connect(
     database="test"
 )
 
-cursor = mydb.cursor()
-mydb.autocommit = True
+try:
+    cursor = mydb.cursor()
+    mydb.autocommit = True
+except:
+    print("Error connecting to database")
 
 def main():
     cursor.callproc('get_hospitals')
     for result in cursor.stored_results():
         print(result.fetchall())
-
-def main():
-    cursor.callproc('get_hospitals')
-    for result in cursor.stored_results():
-        print(result.fetchall())
-    
 
 if __name__ == '__main__':
     main()
