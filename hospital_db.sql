@@ -79,29 +79,46 @@ COLLATE = utf8mb4_0900_ai_ci;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `test`.`user` (
   `iduser` INT NOT NULL AUTO_INCREMENT,
-  `username` VARCHAR(15) NOT NULL,
-  `password` VARCHAR(15) NOT NULL,
-  `first_name` VARCHAR(45) NOT NULL,
-  `last_name` VARCHAR(45) NOT NULL,
-  `email` VARCHAR(45) NOT NULL,
-  `phone_no` VARCHAR(15) NOT NULL,
-  `status` INT NOT NULL COMMENT '0 - Patient\\n1 - Nurse\\n2 - Physician\\n3 - Admin',
+  `username` VARCHAR(45) NOT NULL,
+  `password` VARCHAR(45) NOT NULL,
+  `name` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`iduser`))
 ENGINE = InnoDB
+AUTO_INCREMENT = 2
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
 USE `test` ;
 
 -- -----------------------------------------------------
--- procedure get_hospitals
+-- procedure sp_createUser
 -- -----------------------------------------------------
 
 DELIMITER $$
 USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `get_hospitals`()
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createUser`(
+	IN p_name VARCHAR(20),
+    IN p_username VARCHAR(20),
+    IN p_password VARCHAR(20)
+)
 BEGIN
-	SELECT * FROM hospital;
+	if ( select exists (select 1 from user where username = p_username) ) THEN
+		select 'Username exists!!';
+	else
+		
+        insert into user
+        (
+			`name`,
+            username,
+            `password`
+		)
+        values
+        (
+			p_name,
+            p_username,
+            p_password
+		);
+	END IF;
 END$$
 
 DELIMITER ;
