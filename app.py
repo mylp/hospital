@@ -21,6 +21,28 @@ def main():
 def showSignUp():
     return render_template('signup.html')
 
+@app.route('/appointment')
+def showAppointment():
+    return render_template('appointment.html')
+
+@app.route('/login')
+def showLogin():
+    return render_template('login.html')
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    _username = request.form['inputUsername']
+    _password = request.form['inputPassword']
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_validateLogin', (_username, _password))
+    data = cursor.fetchall()
+
+    if len(data) > 0:
+            return json.dumps({'message': 'User successfully logged in'})
+    else:
+        return json.dumps({'error': 'Invalid username or password'})
 
 @app.route('/api/signup', methods=['POST'])
 def signUp():
