@@ -11,33 +11,52 @@ app.config['MYSQL_DATABASE_DB'] = 'test'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 mysql.init_app(app)
 
+
 @app.route('/')
 def main():
     return render_template('index.html')
+
 
 @app.route('/signup')
 def showSignUp():
     return render_template('signup.html')
 
+
 @app.route('/api/signup', methods=['POST'])
 def signUp():
-    _name = request.form['inputName']
+    _first = request.form['inputFirst']
+    # _middle = request.form['inputMiddle']
+    _last = request.form['inputLast']
+    _street = request.form['inputStreet']
+    _city = request.form['inputCity']
+    _state = request.form['inputState']
+    _zip = request.form['inputZip']
+    # _dropdown = request.form['dropdown']
+    _phone = request.form['inputPhone']
+    _dob = request.form['inputDOB']
+    _sex = request.form['inputSex']
     _email = request.form['inputEmail']
+    _verifyEmail = request.form['inputVerifyEmail']
     _password = request.form['inputPassword']
+    _verifyPassword = request.form['inputVerifyPassword']
 
-    if _name and _email and _password:
+    if all(_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _verifyEmail, _password, _verifyPassword):
+        if _email != _verifyEmail:
+            return json.dumps({'error': 'Emails do not match'})
+        if _password != _verifyPassword:
+            return json.dumps({'error': 'Passwords do not match'})
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.callproc('sp_createUser',(_name,_email,_password))
+        cursor.callproc('sp_createUser', (_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _verifyEmail, _password, _verifyPassword))
         data = cursor.fetchall()
 
         if len(data) == 0:
             conn.commit()
-            return json.dumps({'message':'User created successfully !'})
+            return json.dumps({'message': 'User created successfully !'})
         else:
-            return json.dumps({'error':str(data[0])})
+            return json.dumps({'error': str(data[0])})
     else:
-        return json.dumps({'html':'<span>Enter the required fields</span>'})
+        return json.dumps({'html': '<span>Enter the required fields</span>'})
     """ except:
         return json.dumps({'error':'An error occurred'})
     finally:
