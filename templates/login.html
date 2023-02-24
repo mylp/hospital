@@ -18,7 +18,7 @@
 
 			<nav class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
 				<a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
-					<span class="fs-4">Python Flask App</span>
+					<span class="fs-4">Hospital Management</span>
 				</a>
 				<ul class="nav nav-pills">
 					<li class="nav-item">
@@ -34,7 +34,7 @@
 		</div>
 		<div class="p-5 mb-4 bg-light rounded-3">
 			<div class="container-fluid py-5">
-				<h1 class="display-5 fw-bold text-center">Sign Up</h1>
+				<h1 class="display-5 fw-bold text-center">Login</h1>
 				<form id="form-login" action="/api/login" method="POST">
 					<label for="inputUsername" class="sr-only">Username</label>
 					<input type="username" name="inputUsername" id="inputUsername" class="form-control" placeholder="Username" required
@@ -58,11 +58,11 @@
 	</div>
 	<script>
 		document
-			.querySelector("#form-signin")
+			.querySelector("#form-login")
 			.addEventListener("submit", async function (e) {
 				e.preventDefault();
 				console.log(new URLSearchParams(new FormData(e.target)).toString());
-				const res = await fetch("/api/signup", {
+				const res = await fetch("/api/login", {
 					body: new URLSearchParams(new FormData(e.target)).toString(),
 					method: "POST",
 					headers: {
