@@ -78,11 +78,19 @@ COLLATE = utf8mb4_0900_ai_ci;
 -- Table `test`.`user`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `test`.`user` (
-  `iduser` INT NOT NULL AUTO_INCREMENT,
-  `username` VARCHAR(45) NOT NULL,
+  `username` VARCHAR(45) NOT NULL UNIQUE,
   `password` VARCHAR(45) NOT NULL,
-  `name` VARCHAR(45) NOT NULL,
-  PRIMARY KEY (`iduser`))
+  `first_name` VARCHAR(45) NOT NULL,
+  `last_name` VARCHAR(45) NOT NULL,
+  `street` VARCHAR(45) NOT NULL,
+  `city` VARCHAR(45) NOT NULL,
+  `state` VARCHAR(45) NOT NULL,
+  `zip` VARCHAR(45) NOT NULL,
+  `phone` VARCHAR(45) NOT NULL,
+  `date_of_birth` VARCHAR(45) NOT NULL,
+  `sex` VARCHAR(45) NOT NULL,
+  `email` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`username`))
 ENGINE = InnoDB
 AUTO_INCREMENT = 2
 DEFAULT CHARACTER SET = utf8mb4
@@ -97,9 +105,10 @@ USE `test` ;
 DELIMITER $$
 USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createUser`(
-	IN p_name VARCHAR(20),
-    IN p_username VARCHAR(20),
-    IN p_password VARCHAR(20)
+	IN p_username VARCHAR(45),IN p_password VARCHAR(45),IN p_FN VARCHAR(45),
+    IN p_LN VARCHAR(45),IN p_street VARCHAR(45),IN p_city VARCHAR(45),
+    IN p_state VARCHAR(45),IN p_zip VARCHAR(45),IN p_phone VARCHAR(45),
+    IN p_dob VARCHAR(45),IN p_sex VARCHAR(45),IN p_email VARCHAR(45)
 )
 BEGIN
 	if ( select exists (select 1 from user where username = p_username) ) THEN
@@ -108,20 +117,35 @@ BEGIN
 		
         insert into user
         (
-			`name`,
-            username,
-            `password`
+			`username`,`password`,`first_name`,`last_name`,`street`,`city`,`state`,`zip`,`phone`,
+            `date_of_birth`,`sex`,`email`
 		)
         values
         (
-			p_name,
-            p_username,
-            p_password
+			p_username,p_password,p_FN ,p_LN,p_street,p_city,p_state,p_zip,p_phone,
+            p_dob ,p_sex,p_email
 		);
 	END IF;
 END$$
 
 DELIMITER ;
+-- -----------------------------------------------------
+-- procedure user_login
+-- -----------------------------------------------------
+USE `test`;
+DROP procedure IF EXISTS `user_login_in`;
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `user_login_in`(username varchar(45), password varchar(45))
+BEGIN
+select * from user where ( user.username = username) and (user.password = password);
+END$$
+
+DELIMITER ;
+
+
+
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
