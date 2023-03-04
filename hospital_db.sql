@@ -100,15 +100,19 @@ COLLATE = utf8mb4_0900_ai_ci;
 -- Table `test`.`user`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `test`.`user` (
-  `iduser` INT NOT NULL AUTO_INCREMENT,
-  `username` VARCHAR(15) NOT NULL,
-  `password` VARCHAR(15) NOT NULL,
+  `username` VARCHAR(45) NOT NULL UNIQUE,
+  `password` VARCHAR(45) NOT NULL,
   `first_name` VARCHAR(45) NOT NULL,
   `last_name` VARCHAR(45) NOT NULL,
+  `street` VARCHAR(45) NOT NULL,
+  `city` VARCHAR(45) NOT NULL,
+  `state` VARCHAR(45) NOT NULL,
+  `zip` VARCHAR(45) NOT NULL,
+  `phone` VARCHAR(45) NOT NULL,
+  `date_of_birth` VARCHAR(45) NOT NULL,
+  `sex` VARCHAR(45) NOT NULL,
   `email` VARCHAR(45) NOT NULL,
-  `phone_no` VARCHAR(15) NOT NULL,
-  `status` INT NOT NULL COMMENT '0 - Patient\\n1 - Nurse\\n2 - Physician\\n3 - Admin',
-  PRIMARY KEY (`iduser`))
+  PRIMARY KEY (`username`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
@@ -188,6 +192,23 @@ BEGIN
 END$$
 
 DELIMITER ;
+-- -----------------------------------------------------
+-- procedure user_login
+-- -----------------------------------------------------
+USE `test`;
+DROP procedure IF EXISTS `user_login_in`;
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `user_login_in`(username varchar(45), password varchar(45))
+BEGIN
+select * from user where ( user.username = username) and (user.password = password);
+END$$
+
+DELIMITER ;
+
+
+
 
 
 -- -----------------------------------------------------
