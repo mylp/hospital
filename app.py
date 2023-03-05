@@ -25,6 +25,10 @@ def showSignUp():
 def showAppointment():
     return render_template('appointment.html')
 
+@app.route('/createAppointment')
+def showScheduleAppointment():
+    return render_template('createAppointment.html')
+
 @app.route('/login')
 def showLogin():
     return render_template('login.html')
