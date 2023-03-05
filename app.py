@@ -90,6 +90,22 @@ def userHome():
     return render_template('userHome.html')
 
 
+@app.route('/adminHome')
+def adminHome():
+    return render_template('adminHome.html')
+
+@app.route('/createPhysician')
+def createPhysician():
+    return render_template('createPhysician.html')
+
+@app.route('/createNurse')
+def createNurse():
+    return render_template('createNurse.html')
+
+@app.route('/createAdmin')
+def createAdmin():
+    return render_template('createAdmin.html')
+
 @app.route('/api/login', methods=['POST'])
 def login():
     _username = request.form['inputUsername']
