@@ -91,7 +91,7 @@ def validateLogin():
     finally:
         cursor.close()
         con.close()
-
+@app.route('/api/createAppointment', methods=['POST'])
 @app.route('/api/signup', methods=['POST'])
 def signUp():
     _first = request.form['inputFirst']
