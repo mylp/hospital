@@ -79,6 +79,12 @@ def setHours():
 def showAppointment():
     return render_template('appointment.html')
 
+<<<<<<< HEAD
+=======
+@app.route('/createAppointment')
+def showScheduleAppointment():
+    return render_template('createAppointment.html')
+>>>>>>> Appointment pages and nav bar fixes
 
 @app.route('/login')
 def showLogin():
