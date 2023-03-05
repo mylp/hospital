@@ -42,27 +42,27 @@
 		</div>
 		<div class="p-5 mb-4 bg-light rounded-3">
 			<div class="container-fluid py-5">
-				<h1 class="display-5 fw-bold text-center">Your appointments</h1>
-				<div class="container-fluid py-5"> Test Test Test</div>
-				<h1 class="display-5 fw-bold text-center">Schedule an appointment</h1>
-				<form id="form-signin" action="/api/signup" method="POST">
-					<label for="inputFirst" class="sr-only">First Name</label>
-					<input type="first" name="inputFirst" id="inputFirst" class="form-control" placeholder="First" required
-						autofocus />
-					<button class="btn btn-lg btn-primary btn-block" type="submit">
-						Sign up
-					</button>
+				<h5 class="fw-bold">Select a date</h5>
+				<h6>No dates available</h6>
+
+				<div class="container-fluid py-5"></div>
+				<form id="form-appointment" action="/api/createAppointment" method="POST">
+					<label for="inputReason" class="sr-only">Reason for visit</label>
+					<input name="inputReason" id="inputReason" class="form-control" placeholder=""
+						required autofocus />
+					<button class="btn btn-lg btn-primary btn-block" type="submit">Submit</button>
 				</form>
+				<div class="container-fluid py-5"></div>
 			</div>
 		</div>
 
 		<footer class="footer">
 
 			<p>&copy; Company 2022</p>
-
 		</footer>
 
 	</div>
+	<script src="/assets/js/plugins/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
 	<script>
 		document
 			.querySelector("#form-signin")

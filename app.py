@@ -79,12 +79,10 @@ def setHours():
 def showAppointment():
     return render_template('appointment.html')
 
-<<<<<<< HEAD
-=======
+
 @app.route('/createAppointment')
 def showScheduleAppointment():
     return render_template('createAppointment.html')
->>>>>>> Appointment pages and nav bar fixes
 
 @app.route('/login')
 def showLogin():
@@ -152,7 +150,7 @@ def validateLogin():
         cursor.close()
         con.close()
 
-
+@app.route('/api/createAppointment', methods=['POST'])
 @app.route('/api/signup', methods=['POST'])
 def signUp():
     _first = request.form['inputFirst']
