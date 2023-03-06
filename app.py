@@ -110,6 +110,37 @@ def createNurse():
 def createAdmin():
     return render_template('createAdmin.html')
 
+@app.route('/showAvailableAppointment')
+def showAvailableAppointment():
+
+    _date = request.form['inputDate']
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_getAppointments', (_date))
+    data = cursor.fetchall()
+    return render_template("createAppointment.html", data=data)
+
+
+@app.route('/api/createAppointment', methods=['POST'])
+def createAppointment():
+    _date = request.form['inputDate']
+    _time = request.form['inputTime']
+    _physician = request.form['inputPhysician']
+    _patient = request.form['inputPatient']
+    _reason = request.form['inputReason']
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_createAppointment', (_date, _time, _physician, _patient, _reason))
+    data = cursor.fetchall()
+
+    if len(data) == 0:
+        conn.commit()
+        return json.dumps({'message': 'Appointment created successfully !'})
+    else:
+        return json.dumps({'error': str(data[0])})
+
 @app.route('/api/login', methods=['POST'])
 def login():
     _username = request.form['inputUsername']
@@ -150,7 +181,7 @@ def validateLogin():
         cursor.close()
         con.close()
 
-@app.route('/api/createAppointment', methods=['POST'])
+
 @app.route('/api/signup', methods=['POST'])
 def signUp():
     _first = request.form['inputFirst']

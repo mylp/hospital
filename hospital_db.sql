@@ -211,47 +211,6 @@ DELIMITER ;
 
 
 
--- -----------------------------------------------------
--- procedure create_public_user
--- -----------------------------------------------------
-USE `test`;
-DROP procedure IF EXISTS `create_public_user`;
-
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `create_public_user`(
-  username varchar(15),
-  password varchar(15),
-  first_name varchar(45),
-  last_name varchar(45),
-  email varchar(45),
-  phone_no varchar(45),
-  status int
-)
-BEGIN
-INSERT INTO
-  `test`.`user` (`username`, `password`,`first_name`,`last_name`, `email`,`phone_no`,`status`)
-VALUES
-  (username,password,first_name,last_name ,email,phone_no ,status );
-  -- SET last_id = last_insert_id();
-END$$
-
-DELIMITER ;
-
--- -----------------------------------------------------
--- procedure user_login_in
--- -----------------------------------------------------
-USE `test`;
-DROP procedure IF EXISTS `user_login_in`;
-
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `user_login_in`(username varchar(45), password varchar(45))
-BEGIN
-select * from test.user where ( test.user.email = email) and (test.user.password = password);
-END$$
-
-DELIMITER ;
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

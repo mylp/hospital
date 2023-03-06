@@ -2,10 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="8b33b88e-764b-4150-ac18-917bbbcca3ee" name="Changes" comment="Fix merge conflicts">
-      <change afterPath="$PROJECT_DIR$/static/appointment.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hospital_db.sql" beforeDir="false" afterPath="$PROJECT_DIR$/hospital_db.sql" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/appointment.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/appointment.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/login.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/login.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/createAppointment.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/createAppointment.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

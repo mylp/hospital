@@ -3,7 +3,7 @@
 
 <head>
 
-	<title>Python Flask Bucket List App - Signup</title>
+	<title>Appointment Creator</title>
 
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
 		integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous" />
@@ -11,11 +11,8 @@
 </head>
 
 <body>
-
 	<div class="container">
-
 		<div class="header">
-
 			<nav class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
 				<a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
 					<span class="fs-4">Health Management</span>
@@ -36,40 +33,59 @@
 					<li class="nav-item">
 						<a href="/adminHome" class="nav-link">Admin Home</a>
 				</ul>
-
 			</nav>
-
 		</div>
+
 		<div class="p-5 mb-4 bg-light rounded-3">
 			<div class="container-fluid py-5">
 				<h5 class="fw-bold">Select a date</h5>
-				<h6>No dates available</h6>
-
-				<div class="container-fluid py-5"></div>
-				<form id="form-appointment" action="/api/createAppointment" method="POST">
-					<label for="inputReason" class="sr-only">Reason for visit</label>
-					<input name="inputReason" id="inputReason" class="form-control" placeholder=""
-						required autofocus />
-					<button class="btn btn-lg btn-primary btn-block" type="submit">Submit</button>
+				
+				<form id="form-checkdate" action="/api/showAvailableAppointment" method="POST">
+					<input type="date" name="inputDate" id="inputDate" class="form-control" placeholder="" required
+						autofocus />
+					<button class="btn btn-lg btn-primary btn-block" type="check">
+						Check dates
+					</button>
 				</form>
-				<div class="container-fluid py-5"></div>
+
+				<div class="appointment"> Display/update available appointments here </div>
+				
+				<form id="form-appointment" action="/api/createAppointment" method="POST">
+					<label for="inputReason" class="sr-only"> Reason for visit </label>
+					<input name="inputReason" id="inputReason" class="form-control" placeholder="" required autofocus />
+					<button class="btn btn-lg btn-primary btn-block" type="submit"> Submit </button>
+				</form>
 			</div>
 		</div>
 
 		<footer class="footer">
-
 			<p>&copy; Company 2022</p>
 		</footer>
 
 	</div>
-	<script src="/assets/js/plugins/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
 	<script>
 		document
-			.querySelector("#form-signin")
+			.querySelector("#form-checkdate")
+			.addEventListener("check", async function (e) {
+				e.preventDefault();
+				console.log(new URLSearchParams(new FormData(e.target)).toString());
+				const res = await fetch("/api/showAvailableAppointment", {
+					body: new URLSearchParams(new FormData(e.target)).toString(),
+					method: "POST",
+					headers: {
+						"Content-Type": "application/x-www-form-urlencoded",
+					},
+				});
+				console.log(await res.json());
+			});
+	</script>
+	<script>
+		document
+			.querySelector("#form-appointment")
 			.addEventListener("submit", async function (e) {
 				e.preventDefault();
 				console.log(new URLSearchParams(new FormData(e.target)).toString());
-				const res = await fetch("/api/signup", {
+				const res = await fetch("/api/createAppointment", {
 					body: new URLSearchParams(new FormData(e.target)).toString(),
 					method: "POST",
 					headers: {
