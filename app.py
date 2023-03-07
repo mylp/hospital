@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, json, session, redirect
 from werkzeug.security import generate_password_hash, check_password_hash
 from flaskext.mysql import MySQL
-from forms import ScheduleForm
 
 app = Flask(__name__)
 
@@ -41,11 +40,33 @@ def setHours():
     _sat = request.form['Saturday']
     _sun = request.form['Sunday']
     _pid = request.form["idphysician"]
-    _mtl = request.form["MondayTime_list"]
+    _monTL = ''
+    _tueTL = ''
+    _wedTL = ''
+    _thursTL = ''
+    _friTL = ''
+    _satTL = ''
+    _sunTL = ''
+
+    if request.form["MondayTimes"] is not None:
+        _monTL = request.form["MondayTimes"]
+    if request.form["TuesdayTimes"] is not None:
+        _tueTL = request.form["TuesdayTimes"]
+    if request.form["WednesdayTimes"] is not None:
+        _wedTL = request.form["WednesdayTimes"]
+    if request.form["ThursdayTimes"] is not None:
+        _thursTL = request.form["ThursdayTimes"]
+    if request.form["FridayTimes"] is not None:
+        _friTL = request.form["FridayTimes"]
+    if request.form["SaturdayTimes"] is not None:
+        _satTL = request.form["SaturdayTimes"]
+    if request.form["SundayTimes"] is not None:
+        _sunTL = request.form["SundayTimes"]
+
     conn = mysql.connect()
     cursor = conn.cursor()
     cursor.callproc('sp_setHours',
-                    (_pid, int(_mon), int(_tue), int(_wed), int(_thurs), int(_fri), int(_sat), int(_sun), _mtl))
+                    (_pid, int(_mon), int(_tue), int(_wed), int(_thurs), int(_fri), int(_sat), int(_sun), _monTL, _tueTL, _wedTL, _thursTL, _friTL, _satTL, _sunTL))
     data = cursor.fetchall()
     if len(data) == 0:
         conn.commit()

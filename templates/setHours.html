@@ -52,30 +52,13 @@
                     <fieldset>
 						<legend>What days are you available?</legend>
 						{% for day in days %}
-						<input type="checkbox" name={{day}} value="1" id={{day}}>{{day}}
-						<input type="hidden" name={{day}} value="0" id={{day}}+"Hidden"><br>
-						<script>
-                            form.addEventListener('submit', () => {
-                                if(document.getElementById({{day}}).checked) {
-                                    document.getElementById({{day}}+"Hidden").disabled = true;
-                                    }
-                                }
-                        </script>
-
-						<input type="text" name={{day}}+"Times" id={{day}}+"Times"><input type="button" id="add" value="Add Time"><br>
-						<ol id={{day}}+"Time_list"></ol>
-						<script>
-						document.getElementById("add").onclick  = function() {
-							var node = document.createElement("time");
-							var text = document.getElementById({{day}}+"Times").value;
-							var textnode=document.createTextNode(text);
-							node.appendChild(textnode);
-							document.getElementById({{day}}+"Time_list").appendChild(node);
-						}
-						</script>
-
+						<input type="checkbox" name={{day}} value="1" id={{day}} onclick="displayHours()">{{day}}
+						<input type="hidden" name={{day}} value="0" id={{day}}H><br>
+						<div id={{day}}Instruction style="display: none">
+							<p>Enter availability for {{day}}. Ex: 02:00 PM-03:00 PM, 01:00 AM-12:00 PM</p>
+							<input type="text" name={{day}}Times id={{day}}Times>
+						</div>
 						{% endfor %}
-
 
                         <input type="submit" value="Submit" />
                     </fieldset>
@@ -109,5 +92,22 @@
 				console.log(await res.json());
 			});
 	</script>
+
+	{% for day in days%}
+	<script>
+		document.getElementById('{{day}}').addEventListener("click", displayHours);
+		function displayHours() {
+			document.getElementById('{{day}}Instruction').style.display = (document.getElementById('{{day}}')).checked ? "block" : "none";
+		}
+		var form = document.getElementById('form-schedule');
+		form.addEventListener('submit', temp());
+		function temp() {
+			if(document.getElementById('{{day}}').checked) {
+				document.getElementById('{{day}}H').disabled = true;
+				}
+		};
+	</script>
+	{% endfor %}
+
 
 </html>

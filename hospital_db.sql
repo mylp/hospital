@@ -82,7 +82,13 @@ CREATE TABLE IF NOT EXISTS `test`.`schedule` (
   `friday` BIT,
   `saturday` BIT,
   `sunday` BIT,
-  `monTL` SET,
+  `monTL` VARCHAR(100),
+  `tueTL` VARCHAR(100),
+  `wedTL` VARCHAR(100),
+  `thursTL` VARCHAR(100),
+  `friTL` VARCHAR(100),
+  `satTL` VARCHAR(100),
+  `sunTL` VARCHAR(100),
   PRIMARY KEY (`idphysician`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
@@ -127,17 +133,26 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_setHours`(
     IN  `p_friday` BIT,
     IN  `p_saturday` BIT,
     IN  `p_sunday` BIT,
-    IN  `p_monTL` SET,
+    IN  `p_monTL` VARCHAR(100),
+    IN  `p_tueTL` VARCHAR(100),
+    IN  `p_wedTL` VARCHAR(100),
+    IN  `p_thursTL` VARCHAR(100),
+    IN  `p_friTL` VARCHAR(100),
+    IN  `p_satTL` VARCHAR(100),
+    IN  `p_sunTL` VARCHAR(100)
+
 
 )
 BEGIN
     if (select exists (select 1 from schedule where idphysician = p_idphysician) ) then
         update schedule set monday = p_monday and tuesday = p_tuesday and wednesday = p_wednesday
          and thursday = p_thursday and friday = p_friday and saturday = p_saturday and
-          sunday = p_sunday and monTL = p_monTL where idphysician = p_idphysician;
+          sunday = p_sunday and monTL = p_monTL and tueTL = p_tueTL and
+           wedTL = p_wedTL and thursTL = p_thursTL and friTL = p_friTL and satTL = p_satTL
+            and sunTL = p_sunTL where idphysician = p_idphysician;
     else
-        insert into schedule (idphysician, monday, tuesday, wednesday, thursday, friday, saturday, sunday, monTL)
-        values (p_idphysician, p_monday, p_tuesday, p_wednesday, p_thursday, p_friday, p_saturday, p_sunday, p_monTL);
+        insert into schedule (idphysician, monday, tuesday, wednesday, thursday, friday, saturday, sunday, monTL, tueTL, wedTL, thursTL, friTL, satTL, sunTL)
+        values (p_idphysician, p_monday, p_tuesday, p_wednesday, p_thursday, p_friday, p_saturday, p_sunday, p_monTL, p_tueTL, p_wedTL, p_thursTL, p_friTL, p_satTL, p_sunTL);
     end if;
 
 END$$
