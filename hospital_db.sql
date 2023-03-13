@@ -170,11 +170,11 @@ DELIMITER ;
 -- procedure user_login
 -- -----------------------------------------------------
 USE `test`;
-DROP procedure IF EXISTS `user_login_in`;
+DROP procedure IF EXISTS `sp_validateLogin`;
 
 DELIMITER $$
 USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `user_login_in`(username varchar(45), password varchar(45))
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_validateLogin`(username varchar(45), password varchar(45))
 BEGIN
 select * from user where ( user.username = username) and (user.password = password);
 END$$

@@ -111,7 +111,7 @@ def validateLogin():
         # connect to mysql 
         con = mysql.connect()
         cursor = con.cursor()
-        cursor.callproc('sp_validateLogin',(_username,))
+        cursor.callproc('sp_validateLogin',(_username,_password))
         data = cursor.fetchall()
         if len(data) > 0:
             if check_password_hash(str(data[0][3]),_password):
@@ -129,6 +129,7 @@ def validateLogin():
 
 @app.route('/api/signup', methods=['POST'])
 def signUp():
+    _username=request.form['inputUsername']
     _first = request.form['inputFirst']
     # _middle = request.form['inputMiddle']
     _last = request.form['inputLast']
@@ -141,18 +142,19 @@ def signUp():
     _dob = request.form['inputDOB']
     _sex = request.form['inputSex']
     _email = request.form['inputEmail']
-    _verifyEmail = request.form['inputVerifyEmail']
+   ## _verifyEmail = request.form['inputVerifyEmail']
     _password = request.form['inputPassword']
-    _verifyPassword = request.form['inputVerifyPassword']
+    ##_verifyPassword = request.form['inputVerifyPassword']
 
-    if all(_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _verifyEmail, _password, _verifyPassword):
-        if _email != _verifyEmail:
-            return json.dumps({'error': 'Emails do not match'})
-        if _password != _verifyPassword:
-            return json.dumps({'error': 'Passwords do not match'})
+    if all( _username,_password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email):
+        
+        ##if _email != _verifyEmail:
+          ##  return json.dumps({'error': 'Emails do not match'})
+        ##if _password != _verifyPassword:
+          ##  return json.dumps({'error': 'Passwords do not match'})
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.callproc('sp_createUser', (_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _verifyEmail, _password, _verifyPassword))
+        cursor.callproc('sp_createUser', (_username, _password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email))
         data = cursor.fetchall()
 
         if len(data) == 0:
