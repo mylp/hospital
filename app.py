@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, json, session, redirect
 from werkzeug.security import generate_password_hash, check_password_hash
 from flaskext.mysql import MySQL
 
+from datetime import datetime
 app = Flask(__name__)
 
 mysql = MySQL()
@@ -110,16 +111,17 @@ def createNurse():
 def createAdmin():
     return render_template('createAdmin.html')
 
-@app.route('/showAvailableAppointment')
-def showAvailableAppointment():
+@app.route('/api/refreshAppointment', methods=['POST'])
+def refreshAppointment():
 
     _date = request.form['inputDate']
 
+    print(_date)
     conn = mysql.connect()
     cursor = conn.cursor()
-    cursor.callproc('sp_getAppointments', (_date))
-    data = cursor.fetchall()
-    return render_template("createAppointment.html", data=data)
+    cursor.callproc('sp_getAppointments', (datetime.strptime(_date, '%Y-%M-%d').date(),))
+    dates = cursor.fetchall()
+    return render_template("createAppointment.html", dates=dates)
 
 
 @app.route('/api/createAppointment', methods=['POST'])
