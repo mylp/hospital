@@ -2,12 +2,14 @@ from flask import Flask, render_template, request, json, session, redirect
 from werkzeug.security import generate_password_hash, check_password_hash
 from flaskext.mysql import MySQL
 from datetime import datetime
+import sys
+
 app = Flask(__name__)
 
 mysql = MySQL()
 
 app.config['MYSQL_DATABASE_USER'] = 'root'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'root3069'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'PepeSilvia1259#12!'
 app.config['MYSQL_DATABASE_DB'] = 'test'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 mysql.init_app(app)
@@ -56,14 +58,14 @@ def createAdmin():
 
 @app.route('/api/refreshAppointment', methods=['POST'])
 def refreshAppointment():
-
     _date = request.form['inputDate']
 
-    print(_date)
     conn = mysql.connect()
     cursor = conn.cursor()
-    cursor.callproc('sp_getAppointments', (datetime.strptime(_date, '%Y-%M-%d').date(),))
+
+    cursor.callproc('get_appointments', (_date,))
     dates = cursor.fetchall()
+
     return render_template("createAppointment.html", dates=dates)
 
 
