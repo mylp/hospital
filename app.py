@@ -9,7 +9,7 @@ app = Flask(__name__)
 mysql = MySQL()
 
 app.config['MYSQL_DATABASE_USER'] = 'root'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'PepeSilvia1259#12!'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'root3069'
 app.config['MYSQL_DATABASE_DB'] = 'test'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 mysql.init_app(app)
@@ -145,8 +145,9 @@ def signUp():
    ## _verifyEmail = request.form['inputVerifyEmail']
     _password = request.form['inputPassword']
     ##_verifyPassword = request.form['inputVerifyPassword']
+    
 
-    if all( _username,_password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email):
+    if all( (_username,_password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email)):
         
         ##if _email != _verifyEmail:
           ##  return json.dumps({'error': 'Emails do not match'})
