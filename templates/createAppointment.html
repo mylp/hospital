@@ -41,7 +41,7 @@
 				<h5 class="fw-bold">Select a date</h5>
 				<form id="form-refresh" action="/api/refreshAppointment" method="POST">
 					<input type="date" name="inputDate" id="inputDate">
-					<button type="submit" type="button">Refresh</button>
+					<button type="refresh" type="button">Refresh</button>
 				</form>
 
 				<div class="appointment"> <p>{{ dates }}</p> </div>
@@ -62,7 +62,7 @@
 	<script>
 		document
 			.querySelector("#form-refresh")
-			.addEventListener("submit", async function (e) {
+			.addEventListener("refresh", async function (e) {
 				e.preventDefault();
 				console.log(new URLSearchParams(new FormData(e.target)).toString());
 				const res = await fetch("/api/createAppointment", {
@@ -72,8 +72,8 @@
 						"Content-Type": "application/x-www-form-urlencoded",
 					},
 				});
+				console.log(dates)
 				console.log(await res.json());
-				console.log("test")
 			});
 	</script>
 </body>
