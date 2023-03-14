@@ -69,10 +69,12 @@
 					<label for="inputPassword" class="sr-only">Password</label>
 					<input type="password" name="inputPassword" id="inputPassword" class="form-control"
 						placeholder="Password" required />
-                    
-                    <label for="id" class="sr-only">Physician Id</label>
+                    <!--
+						  <label for="id" class="sr-only">Physician Id</label>
                     <input type="id" name="id" id="id" class="form-control"
                     placeholder="Physician Id" required />
+					-->
+                  
 
                     <label for="Type" class="sr-only">Type</label>
                     <input type="Type" name="Type" id="Type" class="form-control"
@@ -114,7 +116,7 @@
 			.addEventListener("submit", async function (e) {
 				e.preventDefault();
 				console.log(new URLSearchParams(new FormData(e.target)).toString());
-				const res = await fetch("/api/signup", {
+				const res = await fetch("/api/signupPhysician", {
 					body: new URLSearchParams(new FormData(e.target)).toString(),
 					method: "POST",
 					headers: {

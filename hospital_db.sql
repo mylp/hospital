@@ -262,16 +262,6 @@ BEGIN
 	if ( select exists (select 1 from physician where username = p_username) ) THEN
 		select 'Username exists!!';
 	else
-      insert into user
-        (
-			`username`,`password`,`first_name`,`last_name`,`street`,`city`,`state`,`zip`,`phone`,
-            `date_of_birth`,`sex`,`email`
-		)
-        values
-        (
-			p_username,p_password,p_FN ,p_LN,p_street,p_city,p_state,p_zip,p_phone,
-            p_dob ,p_sex,p_email
-		);
 		
         insert into physician
         (
@@ -322,6 +312,30 @@ END$$
 
 DELIMITER ;
 
+-- -----------------------------------------------------
+-- procedure sp_Identify_UserType
+-- -----------------------------------------------------
+USE `test`;
+DROP procedure IF EXISTS `sp_Identify_UserType`;
+
+USE `test`;
+DROP procedure IF EXISTS `test`.`sp_Identify_UserType`;
+;
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_Identify_UserType`(username varchar(45), password varchar(45))
+BEGIN
+SELECT CASE
+         WHEN EXISTS (SELECT * FROM physician WHERE physician.username =username) THEN 'Physician'
+         WHEN EXISTS (SELECT * FROM nurse WHERE nurse.username =username) THEN 'Nurse'
+         WHEN EXISTS (SELECT * FROM user WHERE user.username =username) THEN 'User'
+       END;
+
+END$$
+
+DELIMITER ;
+;
 
 
 SET SQL_MODE=@OLD_SQL_MODE;
