@@ -262,6 +262,16 @@ BEGIN
 	if ( select exists (select 1 from physician where username = p_username) ) THEN
 		select 'Username exists!!';
 	else
+      insert into user
+        (
+			`username`,`password`,`first_name`,`last_name`,`street`,`city`,`state`,`zip`,`phone`,
+            `date_of_birth`,`sex`,`email`
+		)
+        values
+        (
+			p_username,p_password,p_FN ,p_LN,p_street,p_city,p_state,p_zip,p_phone,
+            p_dob ,p_sex,p_email
+		);
 		
         insert into physician
         (
