@@ -2,12 +2,15 @@ from flask import Flask, render_template, request, json, session, redirect
 from werkzeug.security import generate_password_hash, check_password_hash
 from flaskext.mysql import MySQL
 
+from datetime import datetime
+import sys
+
 app = Flask(__name__)
 
 mysql = MySQL()
 
 app.config['MYSQL_DATABASE_USER'] = 'root'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'Gooster1225!2'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'root3069'
 app.config['MYSQL_DATABASE_DB'] = 'test'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 mysql.init_app(app)
@@ -80,6 +83,10 @@ def showAppointment():
     return render_template('appointment.html')
 
 
+@app.route('/createAppointment')
+def showScheduleAppointment():
+    return render_template('createAppointment.html')
+
 @app.route('/login')
 def showLogin():
     return render_template('login.html')
@@ -89,6 +96,54 @@ def showLogin():
 def userHome():
     return render_template('userHome.html')
 
+
+@app.route('/adminHome')
+def adminHome():
+    return render_template('adminHome.html')
+
+@app.route('/createPhysician')
+def createPhysician():
+    return render_template('createPhysician.html')
+
+@app.route('/createNurse')
+def createNurse():
+    return render_template('createNurse.html')
+
+@app.route('/createAdmin')
+def createAdmin():
+    return render_template('createAdmin.html')
+
+@app.route('/api/refreshAppointment', methods=['POST'])
+def refreshAppointment():
+    _date = request.form['inputDate']
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    cursor.callproc('get_appointments', (_date,))
+    dates = cursor.fetchall()
+
+    return render_template("createAppointment.html", dates=dates)
+
+
+@app.route('/api/createAppointment', methods=['POST'])
+def createAppointment():
+    _date = request.form['inputDate']
+    _time = request.form['inputTime']
+    _physician = request.form['inputPhysician']
+    _patient = request.form['inputPatient']
+    _reason = request.form['inputReason']
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_createAppointment', (_date, _time, _physician, _patient, _reason))
+    data = cursor.fetchall()
+
+    if len(data) == 0:
+        conn.commit()
+        return json.dumps({'message': 'Appointment created successfully !'})
+    else:
+        return json.dumps({'error': str(data[0])})
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -114,7 +169,7 @@ def validateLogin():
         # connect to mysql 
         con = mysql.connect()
         cursor = con.cursor()
-        cursor.callproc('sp_validateLogin', (_username,))
+        cursor.callproc('sp_validateLogin',(_username,_password))
         data = cursor.fetchall()
         if len(data) > 0:
             if check_password_hash(str(data[0][3]), _password):
@@ -133,6 +188,7 @@ def validateLogin():
 
 @app.route('/api/signup', methods=['POST'])
 def signUp():
+    _username=request.form['inputUsername']
     _first = request.form['inputFirst']
     # _middle = request.form['inputMiddle']
     _last = request.form['inputLast']
@@ -145,21 +201,21 @@ def signUp():
     _dob = request.form['inputDOB']
     _sex = request.form['inputSex']
     _email = request.form['inputEmail']
-    _verifyEmail = request.form['inputVerifyEmail']
+   ## _verifyEmail = request.form['inputVerifyEmail']
     _password = request.form['inputPassword']
-    _verifyPassword = request.form['inputVerifyPassword']
 
-    if all(_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _verifyEmail, _password,
-           _verifyPassword):
-        if _email != _verifyEmail:
-            return json.dumps({'error': 'Emails do not match'})
-        if _password != _verifyPassword:
-            return json.dumps({'error': 'Passwords do not match'})
+    ##_verifyPassword = request.form['inputVerifyPassword']
+    
+
+    if all( (_username,_password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email)):
+        
+        ##if _email != _verifyEmail:
+          ##  return json.dumps({'error': 'Emails do not match'})
+        ##if _password != _verifyPassword:
+          ##  return json.dumps({'error': 'Passwords do not match'})
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.callproc('sp_createUser', (
-            _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _verifyEmail, _password,
-            _verifyPassword))
+        cursor.callproc('sp_createUser', (_username, _password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email))
         data = cursor.fetchall()
 
         if len(data) == 0:
@@ -177,4 +233,4 @@ def signUp():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

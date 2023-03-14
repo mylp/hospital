@@ -1,0 +1,51 @@
+.navbar {
+    background-color: #333;
+    overflow: hidden;
+  }
+  
+  /* Style the links inside the navbar */
+  .navbar a {
+    float: left;
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+  }
+  
+  /* Change color on hover */
+  .navbar a:hover {
+    background-color: #ddd;
+    color: black;
+  }
+  
+  /* Style the boxes */
+  .box {
+    width: 200px;
+    height: 200px;
+    background-color: #f2f2f2;
+    margin: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    float: left;
+  }
+  
+  /* Style the buttons */
+  .button {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 10px;
+    cursor: pointer;
+    border-radius: 10px;
+  }
+  
+  /* Change color on hover */
+  .button:hover {
+    background-color: #3e8e41;
+  }
