@@ -266,6 +266,7 @@ BEGIN
             p_dob ,p_sex,p_email
 		);
 	END IF;
+    SELECT LAST_INSERT_ID();
 END$$
 
 DELIMITER ;

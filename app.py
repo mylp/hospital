@@ -175,7 +175,6 @@ def validateLogin():
 
 @app.route('/api/signup', methods=['POST'])
 def signUp():
-    _username=request.form['inputUsername']
     _first = request.form['inputFirst']
     _last = request.form['inputLast']
     _street = request.form['inputStreet']
@@ -186,6 +185,7 @@ def signUp():
     _dob = request.form['inputDOB']
     _sex = request.form['inputSex']
     _email = request.form['inputEmail']
+    _username=request.form['inputUsername']
     _password = request.form['inputPassword']
     
     if all( (_username,_password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email)):
@@ -195,9 +195,10 @@ def signUp():
         cursor.callproc('sp_createUser', (_username, _password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email))
         data = cursor.fetchall()
 
-        if len(data) == 0:
+        if len(data) == 1:
             conn.commit()
-            return json.dumps({'message': 'User created successfully !'})
+            session['user'] = data[0][0]
+            return redirect('/userHome')
         else:
             return json.dumps({'error': str(data[0])})
     else:
