@@ -13,6 +13,7 @@ app.config['MYSQL_DATABASE_USER'] = 'root'
 app.config['MYSQL_DATABASE_PASSWORD'] = 'PepeSilvia1259#12!'
 app.config['MYSQL_DATABASE_DB'] = 'test'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
+app.config['SECRET_KEY'] = '1234567890'
 mysql.init_app(app)
 
 
@@ -91,11 +92,17 @@ def showScheduleAppointment():
 def showLogin():
     return render_template('login.html')
 
+@app.route('/logout')
+def logout():
+    session.pop('user',None)
+    return redirect('/')
 
 @app.route('/userHome')
 def userHome():
-    return render_template('userHome.html')
-
+    if session.get('user'):
+        return render_template('userHome.html')
+    else:
+        return render_template('error.html',error = 'Unauthorized Access')
 
 @app.route('/adminHome')
 def adminHome():
@@ -149,44 +156,21 @@ def createAppointment():
     else:
         return json.dumps({'error': str(data[0])})
 
-@app.route('/api/login', methods=['POST'])
-def login():
+@app.route('/api/validateLogin', methods=['POST', 'GET'])
+def validateLogin():
     _username = request.form['inputUsername']
     _password = request.form['inputPassword']
 
-    conn = mysql.connect()
-    cursor = conn.cursor()
-    cursor.callproc('sp_validateLogin', (_username, _password))
+    con = mysql.connect()
+    cursor = con.cursor()
+    cursor.callproc('sp_validateLogin',(_username,_password))
     data = cursor.fetchall()
 
     if len(data) > 0:
-        return json.dumps({'message': 'User successfully logged in'})
+        session['user'] = data[0][0]
+        return redirect('/userHome')
     else:
-        return json.dumps({'error': 'Invalid username or password'})
-
-
-@app.route('/api/validateLogin', methods=['POST'])
-def validateLogin():
-    try:
-        _username = request.form['inputEmail']
-        _password = request.form['inputPassword']
-        con = mysql.connect()
-        cursor = con.cursor()
-        cursor.callproc('sp_validateLogin',(_username,_password))
-        data = cursor.fetchall()
-        if len(data) > 0:
-            if check_password_hash(str(data[0][3]), _password):
-                session['user'] = data[0][0]
-                return redirect('/userHome')
-            else:
-                return render_template('error.html', error='Wrong Email address or Password')
-        else:
-            return render_template('error.html', error='Wrong Email address or Password')
-    except Exception as e:
-        return render_template('error.html', error=str(e))
-    finally:
-        cursor.close()
-        con.close()
+        return render_template('error.html', error='Wrong Email address or Password')
 
 
 @app.route('/api/signup', methods=['POST'])

@@ -317,9 +317,13 @@ DELIMITER ;
 
 DELIMITER $$
 USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_validateLogin`(username varchar(45), password varchar(45))
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_validateLogin`(
+IN p_username VARCHAR(20),
+IN p_password VARCHAR(20)
+)
 BEGIN
-select * from user where ( user.username = username) and (user.password = password);
+    SELECT * FROM `user`
+    WHERE `user`.username = p_username and `user`.`password` = p_password;
 END$$
 
 DELIMITER ;
