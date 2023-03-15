@@ -10,7 +10,7 @@ app = Flask(__name__)
 mysql = MySQL()
 
 app.config['MYSQL_DATABASE_USER'] = 'root'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'root3069'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'PepeSilvia1259#12!'
 app.config['MYSQL_DATABASE_DB'] = 'test'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 mysql.init_app(app)
@@ -236,7 +236,7 @@ def signUp():
         conn.close() """
 
 @app.route('/api/signupPhysician', methods=['POST'])
-def signUpPhysician():
+def signupPhysician():
     _username=request.form['inputUsername']
     _first = request.form['inputFirst']
     # _middle = request.form['inputMiddle']
@@ -264,13 +264,9 @@ def signUpPhysician():
 
     if all( (_username,_password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email,_type,_spec,_rank,_deptId,_clinicId)):
         
-        ##if _email != _verifyEmail:
-          ##  return json.dumps({'error': 'Emails do not match'})
-        ##if _password != _verifyPassword:
-          ##  return json.dumps({'error': 'Passwords do not match'})
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.callproc('sp_createUser', (_username, _password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email,_type,_spec,_rank,_deptId,_clinicId))
+        cursor.callproc('sp_createPhysician', (_username, _password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email,_type,_spec,_rank,_deptId,_clinicId))
         data = cursor.fetchall()
 
         if len(data) == 0:
@@ -280,13 +276,7 @@ def signUpPhysician():
             return json.dumps({'error': str(data[0])})
     else:
         return json.dumps({'html': '<span>Enter the required fields</span>'})
- 
 
-    """ except:
-        return json.dumps({'error':'An error occurred'})
-    finally:
-        cursor.close()
-        conn.close() """
 
 
 

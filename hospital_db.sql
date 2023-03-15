@@ -37,23 +37,12 @@ COLLATE = utf8mb4_0900_ai_ci;
 -- Table `test`.`nurse`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `test`.`nurse` (
-  `username` VARCHAR(45) NOT NULL UNIQUE,
-  `password` VARCHAR(45) NOT NULL,
-  `idnurse` INT NOT NULL AUTO_INCREMENT UNIQUE,
-  `first_name` VARCHAR(45) NOT NULL,
-  `last_name` VARCHAR(45) NOT NULL,
-  `street` VARCHAR(45) NOT NULL,
-  `city` VARCHAR(45) NOT NULL,
-  `state` VARCHAR(45) NOT NULL,
-  `zip` VARCHAR(45) NOT NULL,
-  `phone` VARCHAR(45) NOT NULL,
-  `date_of_birth` VARCHAR(45) NOT NULL,
-  `sex` VARCHAR(45) NOT NULL,
-  `email` VARCHAR(45) NOT NULL,
+  `idnurse` INT NOT NULL,
   `Classification` VARCHAR(45) NOT NULL,
   `DepartmentID` VARCHAR(45) NOT NULL,
   `ClinicID` VARCHAR(45) NOT NULL,
-  PRIMARY KEY (`idnurse`))
+  PRIMARY KEY (`idnurse`),
+  UNIQUE INDEX `idnurse` (`idnurse` ASC) VISIBLE)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
@@ -84,27 +73,13 @@ COLLATE = utf8mb4_0900_ai_ci;
 -- Table `test`.`physician`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `test`.`physician` (
-  `username` VARCHAR(45) NOT NULL UNIQUE,
-  `password` VARCHAR(45) NOT NULL,
-  `idphysician` INT NOT NULL AUTO_INCREMENT UNIQUE,
-  `first_name` VARCHAR(45) NOT NULL,
-  `last_name` VARCHAR(45) NOT NULL,
-  `street` VARCHAR(45) NOT NULL,
-  `city` VARCHAR(45) NOT NULL,
-  `state` VARCHAR(45) NOT NULL,
-  `zip` VARCHAR(45) NOT NULL,
-  `phone` VARCHAR(45) NOT NULL,
-  `date_of_birth` VARCHAR(45) NOT NULL,
-  `sex` VARCHAR(45) NOT NULL,
-  `email` VARCHAR(45) NOT NULL,
+  `idphysician` INT NOT NULL,
   `Type` VARCHAR(45) NOT NULL,
   `Specialization` VARCHAR(45) NOT NULL,
   `DepartmentID` VARCHAR(45) NOT NULL,
   `ClinicID` VARCHAR(45) NOT NULL,
-  
-
-  
-  PRIMARY KEY (`idphysician`))
+  PRIMARY KEY (`idphysician`),
+  UNIQUE INDEX `idphysician` (`idphysician` ASC) VISIBLE)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
@@ -137,7 +112,8 @@ COLLATE = utf8mb4_0900_ai_ci;
 -- Table `test`.`user`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `test`.`user` (
-  `username` VARCHAR(45) NOT NULL UNIQUE,
+  `iduser` INT NOT NULL AUTO_INCREMENT,
+  `username` VARCHAR(45) NOT NULL,
   `password` VARCHAR(45) NOT NULL,
   `first_name` VARCHAR(45) NOT NULL,
   `last_name` VARCHAR(45) NOT NULL,
@@ -149,8 +125,9 @@ CREATE TABLE IF NOT EXISTS `test`.`user` (
   `date_of_birth` VARCHAR(45) NOT NULL,
   `sex` VARCHAR(45) NOT NULL,
   `email` VARCHAR(45) NOT NULL,
-  PRIMARY KEY (`username`))
+  PRIMARY KEY (`iduser`))
 ENGINE = InnoDB
+AUTO_INCREMENT = 6
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -259,19 +236,27 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createPhysician`(
     IN p_clinicId VARCHAR(45)
 )
 BEGIN
-	if ( select exists (select 1 from physician where username = p_username) ) THEN
+	if ( select exists (select 1 from `user` where username = p_username) ) THEN
 		select 'Username exists!!';
 	else
 		
-        insert into physician
+        insert into `user`
         (
 			`username`,`password`,`first_name`,`last_name`,`street`,`city`,`state`,`zip`,`phone`,
-            `date_of_birth`,`sex`,`email`,`Type`,`Specialization`,`DepartmentID`,`ClinicID`
+            `date_of_birth`,`sex`,`email`
 		)
         values
         (
 			p_username,p_password,p_FN ,p_LN,p_street,p_city,p_state,p_zip,p_phone,
-            p_dob ,p_sex,p_email,p_type,p_specialization,p_deptId,p_clinicId
+            p_dob ,p_sex,p_email
+		);
+        insert into `physician`
+        (
+			idphysician, `Type`,`Specialization`,`DepartmentID`,`ClinicID`
+		)
+        values
+        (
+			LAST_INSERT_ID(), p_type,p_specialization, p_deptId, p_clinicId
 		);
 	END IF;
 END$$
@@ -288,24 +273,31 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createNurse`(
 	IN p_username VARCHAR(45),IN p_password VARCHAR(45),IN p_FN VARCHAR(45),
     IN p_LN VARCHAR(45),IN p_street VARCHAR(45),IN p_city VARCHAR(45),
     IN p_state VARCHAR(45),IN p_zip VARCHAR(45),IN p_phone VARCHAR(45),
-    IN p_dob VARCHAR(45),IN p_sex VARCHAR(45),IN p_email VARCHAR(45),
-    IN p_type VARCHAR(45),IN p_Classification VARCHAR(45),IN p_deptId VARCHAR(45),
+    IN p_dob VARCHAR(45),IN p_sex VARCHAR(45),IN p_email VARCHAR(45),IN p_classification VARCHAR(45),IN p_deptId VARCHAR(45),
     IN p_clinicId VARCHAR(45)
 )
 BEGIN
-	if ( select exists (select 1 from nurse where username = p_username) ) THEN
+	if ( select exists (select 1 from `user` where username = p_username) ) THEN
 		select 'Username exists!!';
 	else
 		
-        insert into nurse
+        insert into `user`
         (
 			`username`,`password`,`first_name`,`last_name`,`street`,`city`,`state`,`zip`,`phone`,
-            `date_of_birth`,`sex`,`email`,`Classification`,`DepartmentID`,`ClinicID`
+            `date_of_birth`,`sex`,`email`
 		)
         values
         (
 			p_username,p_password,p_FN ,p_LN,p_street,p_city,p_state,p_zip,p_phone,
-            p_dob ,p_sex,p_email,p_Classification,p_deptId,p_clinicId
+            p_dob ,p_sex,p_email
+		);
+        insert into `nurse`
+        (
+			idnurse,`Classification`,`DepartmentID`,`ClinicID`
+		)
+        values
+        (
+			LAST_INSERT_ID(), p_classification, p_deptId, p_clinicId
 		);
 	END IF;
 END$$
