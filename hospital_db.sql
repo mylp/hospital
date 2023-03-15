@@ -7,27 +7,27 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,N
 -- -----------------------------------------------------
 -- Schema mydb
 -- -----------------------------------------------------
+-- -----------------------------------------------------
+-- Schema test
+-- -----------------------------------------------------
 
 -- -----------------------------------------------------
 -- Schema test
 -- -----------------------------------------------------
-DROP DATABASE IF EXISTS `test`;
-
 CREATE SCHEMA IF NOT EXISTS `test` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci ;
 USE `test` ;
-
-
 
 -- -----------------------------------------------------
 -- Table `test`.`appointment`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `test`.`appointment` (
-  `idappointment` INT NOT NULL AUTO_INCREMENT UNIQUE,
+  `idappointment` INT NOT NULL AUTO_INCREMENT,
   `appointment_date` DATETIME NOT NULL,
   `idpatient` INT NOT NULL,
   `idphysician` INT NOT NULL,
   `description` MEDIUMTEXT NULL DEFAULT NULL,
-  PRIMARY KEY (`idappointment`))
+  PRIMARY KEY (`idappointment`),
+  UNIQUE INDEX `idappointment` (`idappointment` ASC) VISIBLE)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
@@ -52,8 +52,8 @@ COLLATE = utf8mb4_0900_ai_ci;
 -- Table `test`.`patient`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `test`.`patient` (
-  `idpatient` INT NOT NULL AUTO_INCREMENT UNIQUE,
- `first_name` VARCHAR(45) NOT NULL,
+  `idpatient` INT NOT NULL AUTO_INCREMENT,
+  `first_name` VARCHAR(45) NOT NULL,
   `last_name` VARCHAR(45) NOT NULL,
   `street` VARCHAR(45) NOT NULL,
   `city` VARCHAR(45) NOT NULL,
@@ -63,7 +63,8 @@ CREATE TABLE IF NOT EXISTS `test`.`patient` (
   `date_of_birth` VARCHAR(45) NOT NULL,
   `sex` VARCHAR(45) NOT NULL,
   `email` VARCHAR(45) NOT NULL,
-  PRIMARY KEY (`idpatient`))
+  PRIMARY KEY (`idpatient`),
+  UNIQUE INDEX `idpatient` (`idpatient` ASC) VISIBLE)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
@@ -78,35 +79,38 @@ CREATE TABLE IF NOT EXISTS `test`.`physician` (
   `Specialization` VARCHAR(45) NOT NULL,
   `DepartmentID` VARCHAR(45) NOT NULL,
   `ClinicID` VARCHAR(45) NOT NULL,
+  `Rank` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`idphysician`),
   UNIQUE INDEX `idphysician` (`idphysician` ASC) VISIBLE)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
+
 -- -----------------------------------------------------
 -- Table `test`.`schedule`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `test`.`schedule` (
   `idphysician` INT NOT NULL,
-  `monday` BIT,
-  `tuesday` BIT,
-  `wednesday` BIT,
-  `thursday` BIT,
-  `friday` BIT,
-  `saturday` BIT,
-  `sunday` BIT,
-  `monTL` VARCHAR(100),
-  `tueTL` VARCHAR(100),
-  `wedTL` VARCHAR(100),
-  `thursTL` VARCHAR(100),
-  `friTL` VARCHAR(100),
-  `satTL` VARCHAR(100),
-  `sunTL` VARCHAR(100),
+  `monday` BIT(1) NULL DEFAULT NULL,
+  `tuesday` BIT(1) NULL DEFAULT NULL,
+  `wednesday` BIT(1) NULL DEFAULT NULL,
+  `thursday` BIT(1) NULL DEFAULT NULL,
+  `friday` BIT(1) NULL DEFAULT NULL,
+  `saturday` BIT(1) NULL DEFAULT NULL,
+  `sunday` BIT(1) NULL DEFAULT NULL,
+  `monTL` VARCHAR(100) NULL DEFAULT NULL,
+  `tueTL` VARCHAR(100) NULL DEFAULT NULL,
+  `wedTL` VARCHAR(100) NULL DEFAULT NULL,
+  `thursTL` VARCHAR(100) NULL DEFAULT NULL,
+  `friTL` VARCHAR(100) NULL DEFAULT NULL,
+  `satTL` VARCHAR(100) NULL DEFAULT NULL,
+  `sunTL` VARCHAR(100) NULL DEFAULT NULL,
   PRIMARY KEY (`idphysician`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
+
 
 -- -----------------------------------------------------
 -- Table `test`.`user`
@@ -127,138 +131,26 @@ CREATE TABLE IF NOT EXISTS `test`.`user` (
   `email` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`iduser`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 6
+AUTO_INCREMENT = 8
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
 USE `test` ;
 
 -- -----------------------------------------------------
--- procedure sp_setHours
+-- procedure sp_Identify_UserType
 -- -----------------------------------------------------
 
 DELIMITER $$
 USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_setHours`(
-	IN `p_idphysician` INT,
-    IN  `p_monday` BIT,
-    IN  `p_tuesday` BIT,
-    IN  `p_wednesday` BIT,
-    IN  `p_thursday` BIT,
-    IN  `p_friday` BIT,
-    IN  `p_saturday` BIT,
-    IN  `p_sunday` BIT,
-    IN  `p_monTL` VARCHAR(100),
-    IN  `p_tueTL` VARCHAR(100),
-    IN  `p_wedTL` VARCHAR(100),
-    IN  `p_thursTL` VARCHAR(100),
-    IN  `p_friTL` VARCHAR(100),
-    IN  `p_satTL` VARCHAR(100),
-    IN  `p_sunTL` VARCHAR(100)
-
-
-)
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_Identify_UserType`(username varchar(45), password varchar(45))
 BEGIN
-    if (select exists (select 1 from schedule where idphysician = p_idphysician) ) then
-        update schedule set monday = p_monday and tuesday = p_tuesday and wednesday = p_wednesday
-         and thursday = p_thursday and friday = p_friday and saturday = p_saturday and
-          sunday = p_sunday and monTL = p_monTL and tueTL = p_tueTL and
-           wedTL = p_wedTL and thursTL = p_thursTL and friTL = p_friTL and satTL = p_satTL
-            and sunTL = p_sunTL where idphysician = p_idphysician;
-    else
-        insert into schedule (idphysician, monday, tuesday, wednesday, thursday, friday, saturday, sunday, monTL, tueTL, wedTL, thursTL, friTL, satTL, sunTL)
-        values (p_idphysician, p_monday, p_tuesday, p_wednesday, p_thursday, p_friday, p_saturday, p_sunday, p_monTL, p_tueTL, p_wedTL, p_thursTL, p_friTL, p_satTL, p_sunTL);
-    end if;
+SELECT CASE
+         WHEN EXISTS (SELECT * FROM physician WHERE physician.username =username) THEN 'Physician'
+         WHEN EXISTS (SELECT * FROM nurse WHERE nurse.username =username) THEN 'Nurse'
+         WHEN EXISTS (SELECT * FROM user WHERE user.username =username) THEN 'User'
+       END;
 
-END$$
-
-DELIMITER ;
-
-
--- -----------------------------------------------------
--- procedure sp_createUser
--- -----------------------------------------------------
-
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createUser`(
-	IN p_username VARCHAR(45),IN p_password VARCHAR(45),IN p_FN VARCHAR(45),
-    IN p_LN VARCHAR(45),IN p_street VARCHAR(45),IN p_city VARCHAR(45),
-    IN p_state VARCHAR(45),IN p_zip VARCHAR(45),IN p_phone VARCHAR(45),
-    IN p_dob VARCHAR(45),IN p_sex VARCHAR(45),IN p_email VARCHAR(45)
-)
-BEGIN
-	if ( select exists (select 1 from user where username = p_username) ) THEN
-		select 'Username exists!!';
-	else
-
-        insert into user
-        (
-			`username`,`password`,`first_name`,`last_name`,`street`,`city`,`state`,`zip`,`phone`,
-            `date_of_birth`,`sex`,`email`
-		)
-        values
-        (
-			p_username,p_password,p_FN ,p_LN,p_street,p_city,p_state,p_zip,p_phone,
-            p_dob ,p_sex,p_email
-		);
-	END IF;
-END$$
-
-DELIMITER ;
--- -----------------------------------------------------
--- procedure user_login
--- -----------------------------------------------------
-USE `test`;
-DROP procedure IF EXISTS `sp_validateLogin`;
-
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_validateLogin`(username varchar(45), password varchar(45))
-BEGIN
-select * from user where ( user.username = username) and (user.password = password);
-END$$
-
-DELIMITER ;
-
--- -----------------------------------------------------
--- procedure sp_createPhysician
--- -----------------------------------------------------
-
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createPhysician`(
-	IN p_username VARCHAR(45),IN p_password VARCHAR(45),IN p_FN VARCHAR(45),
-    IN p_LN VARCHAR(45),IN p_street VARCHAR(45),IN p_city VARCHAR(45),
-    IN p_state VARCHAR(45),IN p_zip VARCHAR(45),IN p_phone VARCHAR(45),
-    IN p_dob VARCHAR(45),IN p_sex VARCHAR(45),IN p_email VARCHAR(45),
-    IN p_type VARCHAR(45),IN p_specialization VARCHAR(45),IN p_deptId VARCHAR(45),
-    IN p_clinicId VARCHAR(45)
-)
-BEGIN
-	if ( select exists (select 1 from `user` where username = p_username) ) THEN
-		select 'Username exists!!';
-	else
-		
-        insert into `user`
-        (
-			`username`,`password`,`first_name`,`last_name`,`street`,`city`,`state`,`zip`,`phone`,
-            `date_of_birth`,`sex`,`email`
-		)
-        values
-        (
-			p_username,p_password,p_FN ,p_LN,p_street,p_city,p_state,p_zip,p_phone,
-            p_dob ,p_sex,p_email
-		);
-        insert into `physician`
-        (
-			idphysician, `Type`,`Specialization`,`DepartmentID`,`ClinicID`
-		)
-        values
-        (
-			LAST_INSERT_ID(), p_type,p_specialization, p_deptId, p_clinicId
-		);
-	END IF;
 END$$
 
 DELIMITER ;
@@ -305,30 +197,132 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
--- procedure sp_Identify_UserType
+-- procedure sp_createPhysician
 -- -----------------------------------------------------
-USE `test`;
-DROP procedure IF EXISTS `sp_Identify_UserType`;
-
-USE `test`;
-DROP procedure IF EXISTS `test`.`sp_Identify_UserType`;
-;
 
 DELIMITER $$
 USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_Identify_UserType`(username varchar(45), password varchar(45))
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createPhysician`(
+	IN p_username VARCHAR(45),IN p_password VARCHAR(45),IN p_FN VARCHAR(45),
+    IN p_LN VARCHAR(45),IN p_street VARCHAR(45),IN p_city VARCHAR(45),
+    IN p_state VARCHAR(45),IN p_zip VARCHAR(45),IN p_phone VARCHAR(45),
+    IN p_dob VARCHAR(45),IN p_sex VARCHAR(45),IN p_email VARCHAR(45),
+    IN p_type VARCHAR(45),IN p_specialization VARCHAR(45),IN p_deptId VARCHAR(45),
+    IN p_clinicId VARCHAR(45), IN p_rank VARCHAR(45)
+)
 BEGIN
-SELECT CASE
-         WHEN EXISTS (SELECT * FROM physician WHERE physician.username =username) THEN 'Physician'
-         WHEN EXISTS (SELECT * FROM nurse WHERE nurse.username =username) THEN 'Nurse'
-         WHEN EXISTS (SELECT * FROM user WHERE user.username =username) THEN 'User'
-       END;
+	if ( select exists (select 1 from `user` where username = p_username) ) THEN
+		select 'Username exists!!';
+	else
+		
+        insert into `user`
+        (
+			`username`,`password`,`first_name`,`last_name`,`street`,`city`,`state`,`zip`,`phone`,
+            `date_of_birth`,`sex`,`email`
+		)
+        values
+        (
+			p_username,p_password,p_FN ,p_LN,p_street,p_city,p_state,p_zip,p_phone,
+            p_dob ,p_sex,p_email
+		);
+        insert into `physician`
+        (
+			idphysician, `Type`,`Specialization`,`DepartmentID`,`ClinicID`,`Rank`
+		)
+        values
+        (
+			LAST_INSERT_ID(), p_type,p_specialization, p_deptId, p_clinicId,p_rank
+		);
+	END IF;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_createUser
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createUser`(
+	IN p_username VARCHAR(45),IN p_password VARCHAR(45),IN p_FN VARCHAR(45),
+    IN p_LN VARCHAR(45),IN p_street VARCHAR(45),IN p_city VARCHAR(45),
+    IN p_state VARCHAR(45),IN p_zip VARCHAR(45),IN p_phone VARCHAR(45),
+    IN p_dob VARCHAR(45),IN p_sex VARCHAR(45),IN p_email VARCHAR(45)
+)
+BEGIN
+	if ( select exists (select 1 from user where username = p_username) ) THEN
+		select 'Username exists!!';
+	else
+
+        insert into user
+        (
+			`username`,`password`,`first_name`,`last_name`,`street`,`city`,`state`,`zip`,`phone`,
+            `date_of_birth`,`sex`,`email`
+		)
+        values
+        (
+			p_username,p_password,p_FN ,p_LN,p_street,p_city,p_state,p_zip,p_phone,
+            p_dob ,p_sex,p_email
+		);
+	END IF;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_setHours
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_setHours`(
+	IN `p_idphysician` INT,
+    IN  `p_monday` BIT,
+    IN  `p_tuesday` BIT,
+    IN  `p_wednesday` BIT,
+    IN  `p_thursday` BIT,
+    IN  `p_friday` BIT,
+    IN  `p_saturday` BIT,
+    IN  `p_sunday` BIT,
+    IN  `p_monTL` VARCHAR(100),
+    IN  `p_tueTL` VARCHAR(100),
+    IN  `p_wedTL` VARCHAR(100),
+    IN  `p_thursTL` VARCHAR(100),
+    IN  `p_friTL` VARCHAR(100),
+    IN  `p_satTL` VARCHAR(100),
+    IN  `p_sunTL` VARCHAR(100)
+
+
+)
+BEGIN
+    if (select exists (select 1 from schedule where idphysician = p_idphysician) ) then
+        update schedule set monday = p_monday and tuesday = p_tuesday and wednesday = p_wednesday
+         and thursday = p_thursday and friday = p_friday and saturday = p_saturday and
+          sunday = p_sunday and monTL = p_monTL and tueTL = p_tueTL and
+           wedTL = p_wedTL and thursTL = p_thursTL and friTL = p_friTL and satTL = p_satTL
+            and sunTL = p_sunTL where idphysician = p_idphysician;
+    else
+        insert into schedule (idphysician, monday, tuesday, wednesday, thursday, friday, saturday, sunday, monTL, tueTL, wedTL, thursTL, friTL, satTL, sunTL)
+        values (p_idphysician, p_monday, p_tuesday, p_wednesday, p_thursday, p_friday, p_saturday, p_sunday, p_monTL, p_tueTL, p_wedTL, p_thursTL, p_friTL, p_satTL, p_sunTL);
+    end if;
 
 END$$
 
 DELIMITER ;
-;
 
+-- -----------------------------------------------------
+-- procedure sp_validateLogin
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_validateLogin`(username varchar(45), password varchar(45))
+BEGIN
+select * from user where ( user.username = username) and (user.password = password);
+END$$
+
+DELIMITER ;
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

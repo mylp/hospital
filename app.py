@@ -170,7 +170,6 @@ def validateLogin():
     try:
         _username = request.form['inputEmail']
         _password = request.form['inputPassword']
-        # connect to mysql 
         con = mysql.connect()
         cursor = con.cursor()
         cursor.callproc('sp_validateLogin',(_username,_password))
@@ -194,29 +193,19 @@ def validateLogin():
 def signUp():
     _username=request.form['inputUsername']
     _first = request.form['inputFirst']
-    # _middle = request.form['inputMiddle']
     _last = request.form['inputLast']
     _street = request.form['inputStreet']
     _city = request.form['inputCity']
     _state = request.form['inputState']
     _zip = request.form['inputZip']
-    # _dropdown = request.form['dropdown']
     _phone = request.form['inputPhone']
     _dob = request.form['inputDOB']
     _sex = request.form['inputSex']
     _email = request.form['inputEmail']
-   ## _verifyEmail = request.form['inputVerifyEmail']
     _password = request.form['inputPassword']
-
-    ##_verifyPassword = request.form['inputVerifyPassword']
     
-
     if all( (_username,_password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email)):
         
-        ##if _email != _verifyEmail:
-          ##  return json.dumps({'error': 'Emails do not match'})
-        ##if _password != _verifyPassword:
-          ##  return json.dumps({'error': 'Passwords do not match'})
         conn = mysql.connect()
         cursor = conn.cursor()
         cursor.callproc('sp_createUser', (_username, _password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email))
@@ -229,38 +218,26 @@ def signUp():
             return json.dumps({'error': str(data[0])})
     else:
         return json.dumps({'html': '<span>Enter the required fields</span>'})
-    """ except:
-        return json.dumps({'error':'An error occurred'})
-    finally:
-        cursor.close()
-        conn.close() """
 
 @app.route('/api/signupPhysician', methods=['POST'])
 def signupPhysician():
     _username=request.form['inputUsername']
+    _password = request.form['inputPassword']
     _first = request.form['inputFirst']
-    # _middle = request.form['inputMiddle']
     _last = request.form['inputLast']
     _street = request.form['inputStreet']
     _city = request.form['inputCity']
     _state = request.form['inputState']
     _zip = request.form['inputZip']
-    # _dropdown = request.form['dropdown']
     _phone = request.form['inputPhone']
     _dob = request.form['inputDOB']
     _sex = request.form['inputSex']
     _email = request.form['inputEmail']
-   ## _verifyEmail = request.form['inputVerifyEmail']
-    _password = request.form['inputPassword']
     _type= request.form['Type']
     _spec= request.form['Specialization']
     _rank= request.form['Rank']
     _deptId= request.form['DepartmentID']
     _clinicId= request.form['ClinicID']
-    
-
-    ##_verifyPassword = request.form['inputVerifyPassword']
-    
 
     if all( (_username,_password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email,_type,_spec,_rank,_deptId,_clinicId)):
         
