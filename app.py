@@ -143,11 +143,7 @@ def changePassword():
         return json.dumps({'error': 'Passwords do not match!'})
     data = cursor.fetchall()
 
-    if len(data) == 0:
-        conn.commit()
-        return json.dumps({'message': 'Password changed successfully !'})
-    else:
-        return json.dumps({'error': str(data[0])})
+    return render_template("account.html", data=data)
 
 @app.route('/api/refreshAppointment', methods=['POST'])
 def refreshAppointment():
