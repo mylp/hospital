@@ -10,7 +10,7 @@ app = Flask(__name__)
 mysql = MySQL()
 
 app.config['MYSQL_DATABASE_USER'] = 'root'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'root3069'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'PepeSilvia1259#12!'
 app.config['MYSQL_DATABASE_DB'] = 'test'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 app.config['SECRET_KEY'] = '1234567890'
@@ -98,7 +98,7 @@ def logout():
     return redirect('/')
 
 
-@app.route('/userhome')
+@app.route('/userHome')
 def userHome():
     if session.get('user'):
         return render_template('userHome.html')
