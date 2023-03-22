@@ -29,7 +29,7 @@
 					</a>
 					<ul class="nav nav-pills">
 						<li class="nav-item">
-							<a href="/" class="nav-link active" aria-current="page">Home</a>
+							<a href="/" class="nav-link" aria-current="page">Home</a>
 						</li>
 						<li class="nav-item">
 							<a href="/appointment" class="nav-link">Appointments</a>
@@ -40,12 +40,13 @@
 						<li class="nav-item">
 							<a href="/physicianHome" class="nav-link">Physician Home</a>
 						</li>
-						<li class="nav-item">
-							<a href="/signup" class="nav-link">Sign Up</a>
+                        <li class="nav-item">
+							<a href="/account" class="nav-link active">Account</a>
 						</li>
 						<li class="nav-item">
-							<a href="/login" class="nav-link">Login</a>
+							<a href="/logout" class="nav-link">Log Out</a>
 						</li>
+
 					</ul>
 					                        
 				</nav>
@@ -55,43 +56,19 @@
 				<div class="container-fluid py-5 text-center">
 					<h1 class="display-5 fw-bold">Health</h1>
 					       
-					<p>
-						<a class="btn btn-lg btn-success" href="signup" role="button"
-							>Sign up today</a
-						>
-						            
-					</p>
-				</div>
-			</div>
-			        
-			<div class="row marketing">
-				            
-				<div class="col-lg-6">
-					                
-					<h4>Schedule an appointment</h4>
-					                
-					<p>
-						Donec id elit non mi porta gravida at eget metus. Maecenas faucibus
-						mollis interdum.
-					</p>
+					<form id="form-signin" action="/api/changePassword" method="POST">
 
-					<h4>Manage your appointments</h4>
-					                
-					<p>
-						Donec id elit non mi porta gravida at eget metus. Maecenas faucibus
-						mollis interdum.
-					</p>
-
-					<h4>View your account</h4>
-					                
-					<p>
-						Donec id elit non mi porta gravida at eget metus. Maecenas faucibus
-						mollis interdum.
-					</p>
-					                                 
-					            
+						<label for="inputPassword" class="sr-only">New Password</label>
+						<input type="password" name="inputPassword" id="inputPassword" class="form-control" placeholder="New Password" required
+							autofocus />
+						<label for="inputConfirmPW" class="sr-only">Confirm Password</label>
+						<input type="confirmPW" name="inputConfirmPW" id="inputConfirmPW" class="form-control" placeholder="Confirm Password" required
+							autofocus />
+						<button class="btn btn-lg btn-primary btn-block" type="submit">
+							Change Password
+						</button>
+					</form>
 				</div>
-				        
 			</div>
 			        
 			<footer class="footer">

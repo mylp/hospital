@@ -97,6 +97,7 @@ def logout():
     session.pop('user',None)
     return redirect('/')
 
+
 @app.route('/userHome')
 def userHome():
     if session.get('user'):
@@ -120,9 +121,33 @@ def createNurse():
 def createAdmin():
     return render_template('createAdmin.html')
 
-@app.route('/PhysicianHome')
-def PhysicianHome():
-    return render_template('PhysicianHome.html')
+@app.route('/physicianHome')
+def physicianHome():
+    return render_template('physicianHome.html')
+
+@app.route('/account')
+def account():
+    return render_template('account.html')
+
+@app.route('/api/changePassword', methods=['POST'])
+def changePassword():
+    _username = session['user']
+    _password = request.form['inputPassword']
+    _newPassword = request.form['inputConfirmPW']
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    if _password == _newPassword:
+        cursor.callproc('sp_changePassword', (_username, _newPassword))
+    else:
+        return json.dumps({'error': 'Passwords do not match!'})
+    data = cursor.fetchall()
+
+    if len(data) == 0:
+        conn.commit()
+        return json.dumps({'message': 'Password changed successfully !'})
+    else:
+        return json.dumps({'error': str(data[0])})
 
 @app.route('/api/refreshAppointment', methods=['POST'])
 def refreshAppointment():
