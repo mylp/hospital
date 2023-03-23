@@ -10,7 +10,7 @@ app = Flask(__name__)
 mysql = MySQL()
 
 app.config['MYSQL_DATABASE_USER'] = 'root'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'PepeSilvia1259#12!'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'root3069'
 app.config['MYSQL_DATABASE_DB'] = 'test'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 mysql.init_app(app)
@@ -92,9 +92,9 @@ def showLogin():
     return render_template('login.html')
 
 
-@app.route('/userHome')
+@app.route('/userhome')
 def userHome():
-    return render_template('userHome.html')
+    return render_template('userhome.html')
 
 
 @app.route('/adminHome')
