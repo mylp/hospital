@@ -117,6 +117,20 @@ def createAdmin():
 def PhysicianHome():
     return render_template('PhysicianHome.html')
 
+headings=("Bed Id","Clinic Id","Room Number","Occupancy Status","Patient Id")
+
+@app.route('/ManageBeds')
+def ManageBeds():
+    
+ 
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    cursor.callproc('sp_getBeds')
+    beds = cursor.fetchall()
+    print(beds)
+    return render_template('ManageBeds.html',headings=headings,beds=beds)
+
 @app.route('/api/refreshAppointment', methods=['POST'])
 def refreshAppointment():
     _date = request.form['inputDate']
@@ -255,6 +269,29 @@ def signupPhysician():
         return json.dumps({'html': '<span>Enter the required fields</span>'})
 
 
+@app.route('/api/addBed', methods=['POST'])
+def addBed():
+    idbed= request.form['idBed']
+    idclinic= request.form['idClinic']
+    room_number= request.form['roomNum']
+    occupancy_status= request.form['status']
+    idpatient= request.form['idPatien']
+    
+    
+    if all( (idbed,idclinic,room_number,occupancy_status,idpatient)):
+        
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.callproc('sp_addBeds', (idbed,idclinic,room_number,occupancy_status,idpatient))
+        data = cursor.fetchall()
+
+        if len(data) == 0:
+            conn.commit()
+            return json.dumps({'message': 'Bed created successfully !'})
+        else:
+            return json.dumps({'error': str(data[0])})
+    else:
+        return json.dumps({'html': '<span>Enter the required fields</span>'})
 
 
 if __name__ == '__main__':

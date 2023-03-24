@@ -32,6 +32,34 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
+-- -----------------------------------------------------
+-- Table `test`.`clinic`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `test`.`clinic` (
+  `idclinic` INT NOT NULL AUTO_INCREMENT,
+  `clinic_name` VARCHAR(45) NOT NULL,
+  `location` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`idclinic`),
+  UNIQUE INDEX `idclinic` (`idclinic` ASC) VISIBLE)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+-- -----------------------------------------------------
+-- Table `test`.`bed`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `test`.`bed` (
+  `idbed` INT NOT NULL AUTO_INCREMENT,
+  `idclinic` INT,
+  `room_number` VARCHAR(45) NOT NULL,
+  `occupancy_status` VARCHAR(45) NOT NULL,
+  `idpatient` INT,
+  
+  PRIMARY KEY (`idbed`),
+  UNIQUE INDEX `idbed` (`idbed` ASC) VISIBLE)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
 -- -----------------------------------------------------
 -- Table `test`.`nurse`
@@ -320,6 +348,46 @@ USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_validateLogin`(username varchar(45), password varchar(45))
 BEGIN
 select * from user where ( user.username = username) and (user.password = password);
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_getBeds
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getBeds`()
+BEGIN
+select * from bed;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_addBeds
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addBeds`(idbed INT,idclinic INT,room_number varchar(45),occupancy_status varchar(45),idpatient INT)
+BEGIN
+insert into bed(idbed,idclinic,room_number,occupancy_status,idpatient)
+values(idbed,idclinic,room_number,occupancy_status,idpatient);
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_deleteBeds
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_deleteBeds`(p_idbed INT)
+BEGIN
+DELETE FROM bed where idbed=p_idbed;
 END$$
 
 DELIMITER ;
