@@ -18,7 +18,7 @@
 
 			<nav class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
 				<a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
-					<span class="fs-4">Python Flask App</span>
+					<span class="fs-4">Hospital Management</span>
 				</a>
 				<ul class="nav nav-pills">
 					<li class="nav-item">
@@ -39,10 +39,6 @@
 			<div class="container-fluid py-5">
 				<h1 class="display-5 fw-bold text-center">Sign Up</h1>
 				<form id="form-signin" action="/api/signup" method="POST">
-
-					<label for="inputUsername" class="sr-only">First Name</label>
-					<input type="first" name="inputUsername" id="inputUsername" class="form-control" placeholder="Username" required
-						autofocus />
 
 					<label for="inputFirst" class="sr-only">First Name</label>
 					<input type="first" name="inputFirst" id="inputFirst" class="form-control" placeholder="First" required
@@ -74,10 +70,9 @@
 					<label for="inputEmail" class="sr-only">Email address</label>
 					<input type="email" name="inputEmail" id="inputEmail" class="form-control"
 						placeholder="Email address" required autofocus />
-						<!-- <label for="inputEmail" class="sr-only">Email address</label>
-					<input type="email" name="inputEmail" id="inputEmail" class="form-control"
-						placeholder="Email address" required autofocus />-->
-					
+					<label for="inputUsername" class="sr-only">Username</label>
+					<input type="username" name="inputUsername" id="inputUsername" class="form-control" placeholder="Username" required
+						autofocus />
 					<label for="inputPassword" class="sr-only">Password</label>
 					<input type="password" name="inputPassword" id="inputPassword" class="form-control"
 						placeholder="Password" required />
@@ -95,22 +90,6 @@
 		</footer>
 
 	</div>
-	<script>
-		document
-			.querySelector("#form-signin")
-			.addEventListener("submit", async function (e) {
-				e.preventDefault();
-				console.log(new URLSearchParams(new FormData(e.target)).toString());
-				const res = await fetch("/api/signup", {
-					body: new URLSearchParams(new FormData(e.target)).toString(),
-					method: "POST",
-					headers: {
-						"Content-Type": "application/x-www-form-urlencoded",
-					},
-				});
-				console.log(await res.json());
-			});
-	</script>
 </body>
 
 </html>

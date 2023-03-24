@@ -13,6 +13,7 @@ app.config['MYSQL_DATABASE_USER'] = 'root'
 app.config['MYSQL_DATABASE_PASSWORD'] = 'root3069'
 app.config['MYSQL_DATABASE_DB'] = 'test'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
+app.config['SECRET_KEY'] = '1234567890'
 mysql.init_app(app)
 
 
@@ -91,11 +92,18 @@ def showScheduleAppointment():
 def showLogin():
     return render_template('login.html')
 
+@app.route('/logout')
+def logout():
+    session.pop('user',None)
+    return redirect('/')
+
 
 @app.route('/userhome')
 def userHome():
-    return render_template('userhome.html')
-
+    if session.get('user'):
+        return render_template('userHome.html')
+    else:
+        return render_template('error.html',error = 'Unauthorized Access')
 
 @app.route('/adminHome')
 def adminHome():
@@ -113,9 +121,29 @@ def createNurse():
 def createAdmin():
     return render_template('createAdmin.html')
 
-@app.route('/PhysicianHome')
-def PhysicianHome():
-    return render_template('PhysicianHome.html')
+@app.route('/physicianHome')
+def physicianHome():
+    return render_template('physicianHome.html')
+
+@app.route('/account')
+def account():
+    return render_template('account.html')
+
+@app.route('/api/changePassword', methods=['POST'])
+def changePassword():
+    _username = session['user']
+    _password = request.form['inputPassword']
+    _newPassword = request.form['inputConfirmPW']
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    if _password == _newPassword:
+        cursor.callproc('sp_changePassword', (_username, _newPassword))
+    else:
+        return json.dumps({'error': 'Passwords do not match!'})
+    data = cursor.fetchall()
+
+    return render_template("account.html", data=data)
 
 headings=("Bed Id","Clinic Id","Room Number","Occupancy Status","Patient Id")
 
@@ -163,49 +191,25 @@ def createAppointment():
     else:
         return json.dumps({'error': str(data[0])})
 
-@app.route('/api/login', methods=['POST'])
-def login():
+@app.route('/api/validateLogin', methods=['POST', 'GET'])
+def validateLogin():
     _username = request.form['inputUsername']
     _password = request.form['inputPassword']
 
-    conn = mysql.connect()
-    cursor = conn.cursor()
-    cursor.callproc('sp_validateLogin', (_username, _password))
+    con = mysql.connect()
+    cursor = con.cursor()
+    cursor.callproc('sp_validateLogin',(_username,_password))
     data = cursor.fetchall()
 
     if len(data) > 0:
-        return json.dumps({'message': 'User successfully logged in'})
+        session['user'] = data[0][0]
+        return redirect('/userHome')
     else:
-        return json.dumps({'error': 'Invalid username or password'})
-
-
-@app.route('/api/validateLogin', methods=['POST'])
-def validateLogin():
-    try:
-        _username = request.form['inputEmail']
-        _password = request.form['inputPassword']
-        con = mysql.connect()
-        cursor = con.cursor()
-        cursor.callproc('sp_validateLogin',(_username,_password))
-        data = cursor.fetchall()
-        if len(data) > 0:
-            if check_password_hash(str(data[0][3]), _password):
-                session['user'] = data[0][0]
-                return redirect('/userHome')
-            else:
-                return render_template('error.html', error='Wrong Email address or Password')
-        else:
-            return render_template('error.html', error='Wrong Email address or Password')
-    except Exception as e:
-        return render_template('error.html', error=str(e))
-    finally:
-        cursor.close()
-        con.close()
+        return render_template('error.html', error='Wrong Email address or Password')
 
 
 @app.route('/api/signup', methods=['POST'])
 def signUp():
-    _username=request.form['inputUsername']
     _first = request.form['inputFirst']
     _last = request.form['inputLast']
     _street = request.form['inputStreet']
@@ -216,6 +220,7 @@ def signUp():
     _dob = request.form['inputDOB']
     _sex = request.form['inputSex']
     _email = request.form['inputEmail']
+    _username=request.form['inputUsername']
     _password = request.form['inputPassword']
     
     if all( (_username,_password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email)):
@@ -225,9 +230,10 @@ def signUp():
         cursor.callproc('sp_createUser', (_username, _password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email))
         data = cursor.fetchall()
 
-        if len(data) == 0:
+        if len(data) == 1:
             conn.commit()
-            return json.dumps({'message': 'User created successfully !'})
+            session['user'] = data[0][0]
+            return redirect('/userHome')
         else:
             return json.dumps({'error': str(data[0])})
     else:

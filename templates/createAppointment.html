@@ -59,23 +59,6 @@
 		</footer>
 
 	</div>
-	<script>
-		document
-			.querySelector("#form-refresh")
-			.addEventListener("refresh", async function (e) {
-				e.preventDefault();
-				console.log(new URLSearchParams(new FormData(e.target)).toString());
-				const res = await fetch("/api/createAppointment", {
-					body: new URLSearchParams(new FormData(e.target)).toString(),
-					method: "POST",
-					headers: {
-						"Content-Type": "application/x-www-form-urlencoded",
-					},
-				});
-				console.log(dates)
-				console.log(await res.json());
-			});
-	</script>
 </body>
 
 </html>
