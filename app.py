@@ -48,11 +48,7 @@ def setHours():
     _fri = request.form['Friday']
     _sat = request.form['Saturday']
     _sun = request.form['Sunday']
-    try:
-        _pid = getPhysiciansByIdUsingName(request.form["physician"])
-    except:
-        _pid = ''
-
+    _pid = getPhysiciansByIdUsingName(request.form["physician"])
     _monTL = ''
     _tueTL = ''
     _wedTL = ''
@@ -81,8 +77,7 @@ def setHours():
     cursor.callproc('sp_setHours',
                     (
                         _pid, int(_mon), int(_tue), int(_wed), int(_thurs), int(_fri), int(_sat), int(_sun), _monTL,
-                        _tueTL,
-                        _wedTL, _thursTL, _friTL, _satTL, _sunTL))
+                        _tueTL, _wedTL, _thursTL, _friTL, _satTL, _sunTL))
     data = cursor.fetchall()
     if len(data) == 0:
         conn.commit()

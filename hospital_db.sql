@@ -339,12 +339,12 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
--- procedure sp_PhysicianSchedules
+-- procedure sp_getPhysicianSchedules
 -- -----------------------------------------------------
 
 DELIMITER $$
 USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_PhysicianSchedules`()
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getPhysicianSchedules`()
 BEGIN
 SELECT * from test.schedule$$
 
