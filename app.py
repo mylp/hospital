@@ -268,11 +268,46 @@ def signupPhysician():
 
         if len(data) == 0:
             conn.commit()
-            return json.dumps({'message': 'Physician created successfully !'})
+            return render_template('adminHome.html')
         else:
             return json.dumps({'error': str(data[0])})
     else:
         return json.dumps({'html': '<span>Enter the required fields</span>'})
+    
+@app.route('/api/signupNurse', methods=['POST'])
+def signupNurse():
+    _username=request.form['inputUsername']
+    _password = request.form['inputPassword']
+    _first = request.form['inputFirst']
+    _last = request.form['inputLast']
+    _street = request.form['inputStreet']
+    _city = request.form['inputCity']
+    _state = request.form['inputState']
+    _zip = request.form['inputZip']
+    _phone = request.form['inputPhone']
+    _dob = request.form['inputDOB']
+    _sex = request.form['inputSex']
+    _email = request.form['inputEmail']
+    _classification= request.form['Classification']
+    _deptId= request.form['DepartmentID']
+    _clinicId= request.form['ClinicID']
+
+    if all( (_username,_password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email,_classification,_deptId,_clinicId)):
+        
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.callproc('sp_createNurse', (_username, _password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email,_classification,_deptId,_clinicId))
+        data = cursor.fetchall()
+
+        if len(data) == 0:
+            conn.commit()
+            return render_template('adminHome.html')
+        else:
+            return json.dumps({'error': str(data[0])})
+    else:
+        return json.dumps({'html': '<span>Enter the required fields</span>'})
+    
+
 
 
 @app.route('/api/addBed', methods=['POST'])
