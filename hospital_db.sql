@@ -324,6 +324,32 @@ END$$
 
 DELIMITER ;
 
+
+-- -----------------------------------------------------
+-- procedure sp_getPhysiciansByNameAndId
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getPhysiciansByNameAndId`()
+BEGIN
+SELECT a.first_name, a.last_name, b.idphysician FROM test.user a JOIN test.physician b where a.iduser = b.idphysician;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_PhysicianSchedules
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_PhysicianSchedules`()
+BEGIN
+SELECT * from test.schedule$$
+
+DELIMITER ;
+
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
