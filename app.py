@@ -19,12 +19,17 @@ mysql.init_app(app)
 
 @app.route('/')
 def main():
-    return render_template('index.html')
+    return render_template('homepage.html')
 
 
 @app.route('/signup')
 def showSignUp():
     return render_template('signup.html')
+
+
+@app.route('/contacted')
+def showContacted():
+    return render_template('contacted.html')
 
 
 @app.route('/setHours')
