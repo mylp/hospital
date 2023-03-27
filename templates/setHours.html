@@ -3,11 +3,9 @@
 
 <head>
 
-	<title>Python Flask Bucket List App - Signup</title>
-
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
 		integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous" />
-	<link href="../static/signup.css" rel="stylesheet" />
+	<link href="../static/setHours.css" rel="stylesheet" />
 </head>
 
 
@@ -44,70 +42,92 @@
 			</nav>
 
 		</div>
-		<div class="p-5 mb-4 bg-light rounded-3">
-			<div class="container-fluid py-5">
-				<h1 class="display-5 fw-bold text-center">Set Your Hours</h1><br>
-				<form id="form-schedule" action="/api/setHours" method="POST">
-					<input type="number" name="idphysician" id="pid">Enter your Physician ID<br>
-                    <fieldset>
-						<legend>What days are you available?</legend>
+			<h1 class="display-5 fw-bold text-center">Physician Scheduling Tool</h1><br>
+			<div class="row">
+			<div class="column left">
+				<div class="box">
+				<h1 class="display-5 fw-bold text-center">Set Hours</h1><br>
+				<form id="form-schedule" action="/api/setHours" method="POST" >
+							  <label for="physician" >Choose a Physician:</label>
+									<select name="physician" id="physician" required autofocus>
+										<option value="choose"> -- select a physician -- </option>
+										{% for n in p_names %}
+									  	<option value="{{n}}">{{n}}</option>
+										{% endfor %}
+									</select>
+						<fieldset>
+						<legend>Select days for availability:</legend>
 						{% for day in days %}
 						<input type="checkbox" name={{day}} value="1" id={{day}} onclick="displayHours()">{{day}}
 						<input type="hidden" name={{day}} value="0" id={{day}}H><br>
 						<div id={{day}}Instruction style="display: none">
-							<p>Enter availability for {{day}}. Ex: 02:00 PM-03:00 PM, 01:00 AM-12:00 PM</p>
-							<input type="text" name={{day}}Times id={{day}}Times>
+							<p>Enter availability for {{day}}.</p>
+							<p>Ex: 02:00 PM-03:00 PM, 01:00 AM-12:00 PM</p>
+							<input type="text" name={{day}}Times id={{day}}Times pattern="[0|1]\d:[012345]\d\s((PM)|(AM))-[0|1]\d:[012345]\d\s(P|A)M(,\s[0|1]\d:[012345]\d\s(P|A)M-[0|1]\d:[012345]\d\s(P|A)M)*">
 						</div>
 						{% endfor %}
-
-                        <input type="submit" value="Submit" />
+						<br>
+                        <input id='submit' type="submit" value="Submit" onclick="return checkValue()" />
                     </fieldset>
                 </form>
+				</div>
+			</div>
+			<div class="column right">
+				<div class="box">
+				<h1 class="display-5 fw-bold text-center">Current Weekly Schedules</h1><br>
+							  <table>
+								  <tr>
+								  <th>Physician</th>
+								  {% for day in days %}<th>{{day}}</th>{% endfor %}
+								  </tr>
+								  {% for s in schedules %}
+								  <tr>
+									  {% for entry in s %}
+									  <td>{{entry}}</td>
+									  {% endfor %}
+								  </tr>
+								  {% endfor %}
+							  </table>
+
+				</div>
 			</div>
 		</div>
-
-		<footer class="footer">
-
-			<p>&copy; Company 2022</p>
-
-		</footer>
+		</div>
 
 	</div>
 
-</body>
 
-<script>
-		document
-			.querySelector("#form-schedule")
-			.addEventListener("submit", async function (e) {
-				e.preventDefault();
-				console.log(new URLSearchParams(new FormData(e.target)).toString());
-				const res = await fetch("/api/setHours", {
-					body: new URLSearchParams(new FormData(e.target)).toString(),
-					method: "POST",
-					headers: {
-						"Content-Type": "application/x-www-form-urlencoded",
-					},
-				});
-				console.log(await res.json());
-			});
-	</script>
+</body>
 
 	{% for day in days%}
 	<script>
-		document.getElementById('{{day}}').addEventListener("click", displayHours);
+		document.getElementById('{{day}}').addEventListener("change", displayHours);
 		function displayHours() {
 			document.getElementById('{{day}}Instruction').style.display = (document.getElementById('{{day}}')).checked ? "block" : "none";
 		}
 		var form = document.getElementById('form-schedule');
+
 		form.addEventListener('submit', temp());
 		function temp() {
-			if(document.getElementById('{{day}}').checked) {
+				if(document.getElementById('{{day}}').checked) {
 				document.getElementById('{{day}}H').disabled = true;
 				}
+
 		};
 	</script>
 	{% endfor %}
+
+<script>
+	function checkValue() {
+	var p = document.getElementById("physician");
+			 var selectedValue = p.options[p.selectedIndex].value;
+				if (selectedValue == "choose")
+			   {
+				alert("Please select a physician");
+				return false;
+			   }
+			   };
+</script>
 
 
 </html>

@@ -1,0 +1,29 @@
+.row {
+  display: flex;
+}
+
+/* Create two equal columns that sits next to each other */
+.column {
+  float: left;
+  padding: 10px;
+}
+
+.left {
+    width: 30%;
+}
+
+.right {
+    width: 70%;
+}
+
+  .box {
+    background-color: #f2f2f2;
+  }
+
+table, th, td {
+  border:1px solid black;
+}
+
+th, td {
+    width: 115px;
+}

@@ -10,7 +10,7 @@ app = Flask(__name__)
 mysql = MySQL()
 
 app.config['MYSQL_DATABASE_USER'] = 'root'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'PepeSilvia1259#12!'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'Gooster1225!2'
 app.config['MYSQL_DATABASE_DB'] = 'test'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 app.config['SECRET_KEY'] = '1234567890'
@@ -30,8 +30,14 @@ def showSignUp():
 @app.route('/setHours')
 def showSetHours():
     days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-    appt_lengths = [15, 30, 60, 120, 240]
-    return render_template('setHours.html', days=days, appt_lengths=appt_lengths)
+    p_names = getPhysiciansByNameAndId().keys()
+    schedules = getPhysicianSchedules()
+    return render_template('setHours.html', days=days, p_names=p_names, schedules=schedules)
+
+
+@app.route('/setHoursSuccess')
+def setHoursSuccess():
+    return render_template('setHoursSuccess.html')
 
 
 @app.route('/api/setHours', methods=['POST'])
@@ -43,7 +49,7 @@ def setHours():
     _fri = request.form['Friday']
     _sat = request.form['Saturday']
     _sun = request.form['Sunday']
-    _pid = request.form["idphysician"]
+    _pid = getPhysiciansByIdUsingName(request.form["physician"])
     _monTL = ''
     _tueTL = ''
     _wedTL = ''
@@ -52,31 +58,78 @@ def setHours():
     _satTL = ''
     _sunTL = ''
 
-    if request.form["MondayTimes"] is not None:
+    if request.form["MondayTimes"] is not None and _mon == "1":
         _monTL = request.form["MondayTimes"]
-    if request.form["TuesdayTimes"] is not None:
+    if request.form["TuesdayTimes"] is not None and _tue == "1":
         _tueTL = request.form["TuesdayTimes"]
-    if request.form["WednesdayTimes"] is not None:
+    if request.form["WednesdayTimes"] is not None and _wed == "1":
         _wedTL = request.form["WednesdayTimes"]
-    if request.form["ThursdayTimes"] is not None:
+    if request.form["ThursdayTimes"] is not None and _thurs == "1":
         _thursTL = request.form["ThursdayTimes"]
-    if request.form["FridayTimes"] is not None:
+    if request.form["FridayTimes"] is not None and _fri == "1":
         _friTL = request.form["FridayTimes"]
-    if request.form["SaturdayTimes"] is not None:
+    if request.form["SaturdayTimes"] is not None and _sat == "1":
         _satTL = request.form["SaturdayTimes"]
-    if request.form["SundayTimes"] is not None:
+    if request.form["SundayTimes"] is not None and _sun == "1":
         _sunTL = request.form["SundayTimes"]
 
     conn = mysql.connect()
     cursor = conn.cursor()
     cursor.callproc('sp_setHours',
-                    (_pid, int(_mon), int(_tue), int(_wed), int(_thurs), int(_fri), int(_sat), int(_sun), _monTL, _tueTL, _wedTL, _thursTL, _friTL, _satTL, _sunTL))
+                    (
+                        _pid, int(_mon), int(_tue), int(_wed), int(_thurs), int(_fri), int(_sat), int(_sun), _monTL,
+                        _tueTL, _wedTL, _thursTL, _friTL, _satTL, _sunTL))
     data = cursor.fetchall()
     if len(data) == 0:
         conn.commit()
-        return json.dumps({'message': 'Hours add successfully!'})
+        json.dumps({'message': 'Hours add successfully!'})
+        return redirect('/setHoursSuccess')
     else:
         return json.dumps({'error': str(data[0])})
+
+
+def getPhysiciansByNameAndId():
+    listOfPhysicianNamesIds = []
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_getPhysiciansByNameAndId')
+    data = cursor.fetchall()
+    if len(data) > 0:
+        conn.commit()
+        listOfPhysicianNamesIds = data
+        json.dumps({'message': 'Physician names grabbed successfully'})
+    l = {}
+    for tup in listOfPhysicianNamesIds:
+        l[tup[0] + " " + tup[1]] = tup[2]
+    return l
+
+
+def getPhysiciansByIdUsingName(name):
+    phyDict = getPhysiciansByNameAndId()
+    return phyDict[name]
+
+
+def getPhysicianSchedules():
+    lst = []
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_getPhysicianSchedules')
+    data = cursor.fetchall()
+    if len(data) > 0:
+        conn.commit()
+        listOfPhysicianNamesIds = data
+        json.dumps({'message': 'Physician schedule successfully'})
+    lst = data
+    formatted = []
+    for tup in lst:
+        individual = []
+        name = [k for k, v in getPhysiciansByNameAndId().items() if v == tup[0]][0]
+        individual.append(name)
+        for time in tup[8:]:
+            individual.append(time)
+        formatted.append(individual)
+
+    return formatted
 
 
 @app.route('/appointment')
@@ -87,6 +140,7 @@ def showAppointment():
 @app.route('/createAppointment')
 def showScheduleAppointment():
     return render_template('createAppointment.html')
+
 
 @app.route('/login')
 def showLogin():
@@ -109,13 +163,16 @@ def userHome():
 def adminHome():
     return render_template('adminHome.html')
 
+
 @app.route('/createPhysician')
 def createPhysician():
     return render_template('createPhysician.html')
 
+
 @app.route('/createNurse')
 def createNurse():
     return render_template('createNurse.html')
+
 
 @app.route('/createAdmin')
 def createAdmin():
@@ -158,6 +215,7 @@ def ManageBeds():
     beds = cursor.fetchall()
     print(beds)
     return render_template('ManageBeds.html',headings=headings,beds=beds)
+
 
 @app.route('/api/refreshAppointment', methods=['POST'])
 def refreshAppointment():
@@ -222,12 +280,13 @@ def signUp():
     _email = request.form['inputEmail']
     _username=request.form['inputUsername']
     _password = request.form['inputPassword']
-    
-    if all( (_username,_password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email)):
-        
+
+    if all((_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email)):
+
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.callproc('sp_createUser', (_username, _password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email))
+        cursor.callproc('sp_createUser',
+                        (_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email))
         data = cursor.fetchall()
 
         if len(data) == 1:
@@ -239,9 +298,10 @@ def signUp():
     else:
         return json.dumps({'html': '<span>Enter the required fields</span>'})
 
+
 @app.route('/api/signupPhysician', methods=['POST'])
 def signupPhysician():
-    _username=request.form['inputUsername']
+    _username = request.form['inputUsername']
     _password = request.form['inputPassword']
     _first = request.form['inputFirst']
     _last = request.form['inputLast']
@@ -253,17 +313,20 @@ def signupPhysician():
     _dob = request.form['inputDOB']
     _sex = request.form['inputSex']
     _email = request.form['inputEmail']
-    _type= request.form['Type']
-    _spec= request.form['Specialization']
-    _rank= request.form['Rank']
-    _deptId= request.form['DepartmentID']
-    _clinicId= request.form['ClinicID']
+    _type = request.form['Type']
+    _spec = request.form['Specialization']
+    _rank = request.form['Rank']
+    _deptId = request.form['DepartmentID']
+    _clinicId = request.form['ClinicID']
 
-    if all( (_username,_password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email,_type,_spec,_rank,_deptId,_clinicId)):
-        
+    if all((_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _type, _spec,
+            _rank, _deptId, _clinicId)):
+
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.callproc('sp_createPhysician', (_username, _password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email,_type,_spec,_rank,_deptId,_clinicId))
+        cursor.callproc('sp_createPhysician', (
+            _username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _type, _spec,
+            _rank, _deptId, _clinicId))
         data = cursor.fetchall()
 
         if len(data) == 0:
