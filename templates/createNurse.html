@@ -18,7 +18,7 @@
 
 			<nav class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
 				<a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
-					<span class="fs-4">Python Flask App</span>
+					<span class="fs-4">Hospital Management</span>
 				</a>
 				<ul class="nav nav-pills">
 					<li class="nav-item">
@@ -35,7 +35,7 @@
 		<div class="p-5 mb-4 bg-light rounded-3">
 			<div class="container-fluid py-5">
 				<h1 class="display-5 fw-bold text-center">Sign Up</h1>
-				<form id="form-signin" action="/api/signup" method="POST">
+				<form id="form-signin" action="/api/signupNurse" method="POST">
 					<label for="inputFirst" class="sr-only">First Name</label>
 					<input type="first" name="inputFirst" id="inputFirst" class="form-control" placeholder="First" required
 						autofocus />
@@ -66,23 +66,18 @@
 					<label for="inputEmail" class="sr-only">Email address</label>
 					<input type="email" name="inputEmail" id="inputEmail" class="form-control"
 						placeholder="Email address" required autofocus />
-					<label for="inputPassword" class="sr-only">Password</label>
+					<label for="inputUsername" class="sr-only">Username</label>
+					<input type="username" name="inputUsername" id="inputUsername" class="form-control" placeholder="Username" required
+						autofocus />
+						<label for="inputPassword" class="sr-only">Password</label>
 					<input type="password" name="inputPassword" id="inputPassword" class="form-control"
 						placeholder="Password" required />
-                    
-                    <label for="id" class="sr-only">Physician Id</label>
-                    <input type="id" name="id" id="id" class="form-control"
-                    placeholder="Physician Id" required />
-
-
                     <label for="Classification" class="sr-only">Classification</label>
                     <input type="Classification" name="Classification" id="SClassification" class="form-control"
                     placeholder="Classification" required />
-
                     <label for="DepartmentID" class="sr-only">Department ID</label>
                     <input type="DepartmentID" name="DepartmentID" id="DepartmentID" class="form-control"
                     placeholder="Department ID" required />
-
                     <label for="ClinicID" class="sr-only">Clinic ID</label>
                     <input type="ClinicID" name="ClinicID" id="ClinicID" class="form-control"
                     placeholder="Clinic ID" required />
@@ -101,22 +96,6 @@
 		</footer>
 
 	</div>
-	<script>
-		document
-			.querySelector("#form-signin")
-			.addEventListener("submit", async function (e) {
-				e.preventDefault();
-				console.log(new URLSearchParams(new FormData(e.target)).toString());
-				const res = await fetch("/api/signup", {
-					body: new URLSearchParams(new FormData(e.target)).toString(),
-					method: "POST",
-					headers: {
-						"Content-Type": "application/x-www-form-urlencoded",
-					},
-				});
-				console.log(await res.json());
-			});
-	</script>
 </body>
 
 </html>

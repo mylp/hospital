@@ -25,10 +25,7 @@
 						<a href="/" class="nav-link">Home</a>
 					</li>
 					<li class="nav-item">
-						<a href="/signup" class="nav-link" aria-current="page">Signup</a>
-					</li>
-					<li class="nav-item">
-						<a href="/login" class="nav-link active">Login</a>
+						<a href="/adminHome" class="nav-link">Admin Home</a>
 					</li>
 				</ul>
 
@@ -36,20 +33,7 @@
 
 		</div>
 		<div class="p-5 mb-4 bg-light rounded-3">
-			<div class="container-fluid py-5">
-				<h1 class="display-5 fw-bold text-center">Login</h1>
-				<form id="form-login" action="/api/validateLogin" method="POST">
-					<label for="inputUsername" class="sr-only">Username</label>
-					<input type="username" name="inputUsername" id="inputUsername" class="form-control" placeholder="Username" required
-						autofocus />
-					<label for="inputPassword" class="sr-only">Password</label>
-					<input type="password" name="inputPassword" id="inputPassword" class="form-control" placeholder="Password" required
-						autofocus />
-					<button class="btn btn-lg btn-primary btn-block" type="submit">
-						Login
-					</button>
-				</form>
-			</div>
+                {{error}}
 		</div>
 
 		<footer class="footer">
@@ -59,6 +43,7 @@
 		</footer>
 
 	</div>
+	
 </body>
 
 </html>

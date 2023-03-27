@@ -32,6 +32,34 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
+-- -----------------------------------------------------
+-- Table `test`.`clinic`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `test`.`clinic` (
+  `idclinic` INT NOT NULL AUTO_INCREMENT,
+  `clinic_name` VARCHAR(45) NOT NULL,
+  `location` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`idclinic`),
+  UNIQUE INDEX `idclinic` (`idclinic` ASC) VISIBLE)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+-- -----------------------------------------------------
+-- Table `test`.`bed`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `test`.`bed` (
+  `idbed` INT NOT NULL AUTO_INCREMENT,
+  `idclinic` INT,
+  `room_number` VARCHAR(45) NOT NULL,
+  `occupancy_status` VARCHAR(45) NOT NULL,
+  `idpatient` INT,
+  
+  PRIMARY KEY (`idbed`),
+  UNIQUE INDEX `idbed` (`idbed` ASC) VISIBLE)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
 -- -----------------------------------------------------
 -- Table `test`.`nurse`
@@ -131,7 +159,7 @@ CREATE TABLE IF NOT EXISTS `test`.`user` (
   `email` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`iduser`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 8
+AUTO_INCREMENT = 9
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -151,6 +179,21 @@ SELECT CASE
          WHEN EXISTS (SELECT * FROM user WHERE user.username =username) THEN 'User'
        END;
 
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_changePassword
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_changePassword`(IN userID VARCHAR(45), IN `new_password` VARCHAR(45))
+BEGIN
+	UPDATE `user`
+    SET `password` = new_password
+    WHERE iduser = userID;
 END$$
 
 DELIMITER ;
@@ -266,6 +309,7 @@ BEGIN
             p_dob ,p_sex,p_email
 		);
 	END IF;
+    SELECT LAST_INSERT_ID();
 END$$
 
 DELIMITER ;
@@ -317,9 +361,53 @@ DELIMITER ;
 
 DELIMITER $$
 USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_validateLogin`(username varchar(45), password varchar(45))
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_validateLogin`(
+IN p_username VARCHAR(20),
+IN p_password VARCHAR(20)
+)
 BEGIN
-select * from user where ( user.username = username) and (user.password = password);
+    SELECT * FROM `user`
+    WHERE `user`.username = p_username and `user`.`password` = p_password;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_getBeds
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getBeds`()
+BEGIN
+select * from bed;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_addBeds
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addBeds`(idbed INT,idclinic INT,room_number varchar(45),occupancy_status varchar(45),idpatient INT)
+BEGIN
+insert into bed(idbed,idclinic,room_number,occupancy_status,idpatient)
+values(idbed,idclinic,room_number,occupancy_status,idpatient);
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_deleteBeds
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_deleteBeds`(p_idbed INT)
+BEGIN
+DELETE FROM bed where idbed=p_idbed;
 END$$
 
 DELIMITER ;

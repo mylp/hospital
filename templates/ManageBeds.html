@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+		integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous" />
+    <link href="../static/table.css" rel="stylesheet" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+			        
+        <header class="header">
+                        
+            <nav
+                class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom"
+            >
+                <a
+                    href="/"
+                    class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none"
+                >
+                    <span class="fs-4">Hospital Management</span>
+                </a>
+                <ul class="nav nav-pills">
+                    <li class="nav-item">
+                        <a href="/" class="nav-link" aria-current="page">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/adminHome" class="nav-link active">Admin Home</a>
+                    </li>
+                </ul>
+                                        
+            </nav>
+                                 
+        </header>
+
+
+        
+    </div>
+    <table class="table">
+       
+        <tr class="table_header">
+        {% for header in headings %}
+            <th class="table_cell">{{header}}</td>
+        {% endfor %}
+        </tr>
+        {% for row in beds %}
+        <tr class="table_row">
+            {% for cell in row %}
+                <th class="table_cell">{{cell}}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+        
+      
+    <table>
+
+        
+  <!-- Trigger the modal with a button -->
+  <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModal">Add Bed</button>
+
+  <!-- Modal -->
+  <div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog">
+    
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Add Bed</h4>
+        </div>
+        <div class="modal-body">
+            <label for="idBed" class="sr-only">Bed Id</label>
+            <input type="idBed" name="idBed" id="inputFirst" class="form-control" placeholder="Bed Id" required
+                autofocus />
+            <label for="idClinic" class="sr-only">Clinic Id</label>
+            <input type="idClinic" name="idClinic" id="idClinic" class="form-control" placeholder="Clinic Id" required
+                autofocus />   
+            <label for="roomNum" class="sr-only">Room Number</label>
+            <input type="roomNum" name="roomNum" id="roomNum" class="form-control" placeholder="Room Number" required
+            autofocus /> 
+            <label for="status" class="sr-only">Occupancy Status</label>
+            <input type="status" name="status" id="status" class="form-control" placeholder="Occupancy Status" required
+            autofocus /> 
+            <label for="idPatient" class="sr-only">Patient Id</label>
+            <input type="idPatient" name="idPatient" id="idPatient" class="form-control" placeholder="Patient Id" required
+            autofocus /> 
+            <button class="btn btn-lg btn-primary btn-block" type="submit">
+                Submit
+            </button>
+       
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+</div>
+<div>
+  <!-- Trigger the modal with delete button -->
+  <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModalDelete">Delete Bed</button>
+
+  <!-- Delete Modal -->
+  <div class="modal fade" id="myModalDelete" role="dialog">
+    <div class="modal-dialog">
+    
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Delete Bed</h4>
+        </div>
+        <div class="modal-body">
+            <label for="idBed" class="sr-only">Bed Id</label>
+            <input type="idBed" name="idBed" id="inputFirst" class="form-control" placeholder="Bed Id" required
+                autofocus />
+            <button class="btn btn-lg btn-primary btn-block" type="submit">
+                Submit
+            </button>
+
+    </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+   
+      
+    </div>
+  </div>
+  
+</div>
+
+<script>
+    document
+        .querySelector("#form-signin")
+        .addEventListener("submit", async function (e) {
+            e.preventDefault();
+            console.log(new URLSearchParams(new FormData(e.target)).toString());
+            const res = await fetch("/api/addBed", {
+                body: new URLSearchParams(new FormData(e.target)).toString(),
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+            });
+            console.log(await res.json());
+        });
+</script>
+  </body>
+
+</html>
