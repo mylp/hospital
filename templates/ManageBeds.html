@@ -60,7 +60,7 @@
       
     <table>
 
-        
+  <form id="form-addBed" action="/api/addBed" method="POST">      
   <!-- Trigger the modal with a button -->
   <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModal">Add Bed</button>
 
@@ -102,6 +102,9 @@
     </div>
 </div>
 <div>
+</form>
+ 
+<form id="form-deleteBed" action="/api/deleteBed" method="POST">      
   <!-- Trigger the modal with delete button -->
   <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModalDelete">Delete Bed</button>
 
@@ -132,25 +135,10 @@
       
     </div>
   </div>
-  
+</form> 
 </div>
 
-<script>
-    document
-        .querySelector("#form-signin")
-        .addEventListener("submit", async function (e) {
-            e.preventDefault();
-            console.log(new URLSearchParams(new FormData(e.target)).toString());
-            const res = await fetch("/api/addBed", {
-                body: new URLSearchParams(new FormData(e.target)).toString(),
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-            });
-            console.log(await res.json());
-        });
-</script>
+
   </body>
 
 </html>
