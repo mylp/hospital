@@ -1,0 +1,59 @@
+.welcome {
+  font-size: 50px;
+  padding: 40px;
+  text-align: center;
+}
+
+  .buttonS {
+    background-color: #0d6efd;
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 20px;
+    margin: 10px;
+    cursor: pointer;
+    border-radius: 10px;
+  }
+
+    .buttonL {
+    left: 50%;
+    background-color: #0d6efd;
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 20px;
+    margin: 10px;
+    cursor: pointer;
+    border-radius: 10px;
+  }
+
+    .buttonM {
+    left: 50%;
+    background-color: #1234f;
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 20px;
+    margin: 10px;
+    cursor: pointer;
+    border-radius: 10px;
+  }
+
+    .buttonS:hover, .buttonL:hover {
+    background-color: #0a58ca;
+  }
+
+.left {
+    width: 70%;
+}
+
+.right {
+    width: 30%;
+    padding: 30px;
+}
