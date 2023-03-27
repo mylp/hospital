@@ -10,7 +10,7 @@ app = Flask(__name__)
 mysql = MySQL()
 
 app.config['MYSQL_DATABASE_USER'] = 'root'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'Gooster1225!2'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'root3069'
 app.config['MYSQL_DATABASE_DB'] = 'test'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 app.config['SECRET_KEY'] = '1234567890'
@@ -384,7 +384,7 @@ def addBed():
     idclinic= request.form['idClinic']
     room_number= request.form['roomNum']
     occupancy_status= request.form['status']
-    idpatient= request.form['idPatien']
+    idpatient= request.form['idPatient']
     
     
     if all( (idbed,idclinic,room_number,occupancy_status,idpatient)):
@@ -396,11 +396,33 @@ def addBed():
 
         if len(data) == 0:
             conn.commit()
-            return json.dumps({'message': 'Bed created successfully !'})
+            return redirect('/ManageBeds')
         else:
             return json.dumps({'error': str(data[0])})
     else:
         return json.dumps({'html': '<span>Enter the required fields</span>'})
+
+@app.route('/api/deleteBed', methods=['POST'])
+def adddeleteBed():
+    idbed= request.form['idBed']
+    
+    
+    if all( (idbed)):
+        
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.callproc('sp_deleteBeds', (idbed))
+        data = cursor.fetchall()
+
+        if len(data) == 0:
+            conn.commit()
+            return redirect('/ManageBeds')
+        else:
+            return json.dumps({'error': str(data[0])})
+    else:
+        return json.dumps({'html': '<span>Enter the required fields</span>'})
+
+
 
 
 if __name__ == '__main__':
