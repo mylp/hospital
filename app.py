@@ -266,9 +266,12 @@ def validateLogin():
     data = cursor.fetchall()
 
     if len(data) > 0:
-        if check_password_hash(str(data[0][3]),_password):
+        if check_password_hash(str(data[0][2]),_password):
             session['user'] = data[0][0]
-            return redirect('/userHome')
+            if data[0][13] == "user":
+                return redirect('/userHome')
+            elif data[0][13] == "phys":
+                return redirect('/physicianHome')
         else:
             return render_template('error.html', error='Wrong Email address or Password')
     else:
