@@ -39,12 +39,6 @@
 		<div class="p-5 mb-4 bg-light rounded-3">
 			<div class="container-fluid py-5">
 				<h5 class="fw-bold">Select a date</h5>
-				<form id="form-refresh" action="/api/refreshAppointment" method="POST">
-					<input type="date" name="inputDate" id="inputDate">
-					<button type="refresh" type="button">Refresh</button>
-				</form>
-
-				<div class="appointment"> <p>{{ dates }}</p> </div>
 				
 				<form id="form-appointment" action="/api/createAppointment" method="POST">
 					<label for="inputReason" class="sr-only"> Reason for visit </label>

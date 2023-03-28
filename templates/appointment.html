@@ -44,7 +44,10 @@
 		<div class="p-5 mb-4 bg-light rounded-3">
 			<div class="container-fluid py-5">
 				<h3 class="display-5 fw-bold text-center">Appointments</h3>
-				<div class="display-10 fw-bold text-center"> You have no upcoming appointments</div>
+				<form id="form-refresh" action="/api/refreshAppointment" method="POST">
+					<button type="refresh" type="button">Refresh</button>
+				</form>
+				<div class="appointment"> <p>{{ dates }}</p> </div>
 			</div>
 			<div class="container-fluid py-5">
 				<div class="display-5 fw-bold text-center">

@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS `test`.`appointment` (
   PRIMARY KEY (`idappointment`),
   UNIQUE INDEX `idappointment` (`idappointment` ASC) VISIBLE)
 ENGINE = InnoDB
+AUTO_INCREMENT = 2
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -159,15 +160,32 @@ CREATE TABLE IF NOT EXISTS `test`.`user` (
   `date_of_birth` VARCHAR(45) NOT NULL,
   `sex` VARCHAR(45) NOT NULL,
   `email` VARCHAR(45) NOT NULL,
+  `type` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`iduser`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 10
+AUTO_INCREMENT = 15
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
 USE `test` ;
 
+-- -----------------------------------------------------
+-- procedure sp_Identify_UserType
+-- -----------------------------------------------------
 
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_Identify_UserType`(username varchar(45), password varchar(45))
+BEGIN
+SELECT CASE
+         WHEN EXISTS (SELECT * FROM physician WHERE physician.username =username) THEN 'Physician'
+         WHEN EXISTS (SELECT * FROM nurse WHERE nurse.username =username) THEN 'Nurse'
+         WHEN EXISTS (SELECT * FROM user WHERE user.username =username) THEN 'User'
+       END;
+
+END$$
+
+DELIMITER ;
 
 -- -----------------------------------------------------
 -- procedure sp_addBeds
@@ -219,12 +237,12 @@ BEGIN
         insert into `user`
         (
 			`username`,`password`,`first_name`,`last_name`,`street`,`city`,`state`,`zip`,`phone`,
-            `date_of_birth`,`sex`,`email`
+            `date_of_birth`,`sex`,`email`,`type`
 		)
         values
         (
 			p_username,p_password,p_FN ,p_LN,p_street,p_city,p_state,p_zip,p_phone,
-            p_dob ,p_sex,p_email
+            p_dob ,p_sex,p_email,"nurse"
 		);
         insert into `nurse`
         (
@@ -261,12 +279,12 @@ BEGIN
         insert into `user`
         (
 			`username`,`password`,`first_name`,`last_name`,`street`,`city`,`state`,`zip`,`phone`,
-            `date_of_birth`,`sex`,`email`
+            `date_of_birth`,`sex`,`email`,`type`
 		)
         values
         (
 			p_username,p_password,p_FN ,p_LN,p_street,p_city,p_state,p_zip,p_phone,
-            p_dob ,p_sex,p_email
+            p_dob ,p_sex,p_email,"phys"
 		);
         insert into `physician`
         (
@@ -301,12 +319,12 @@ BEGIN
         insert into user
         (
 			`username`,`password`,`first_name`,`last_name`,`street`,`city`,`state`,`zip`,`phone`,
-            `date_of_birth`,`sex`,`email`
+            `date_of_birth`,`sex`,`email`,`type`
 		)
         values
         (
 			p_username,p_password,p_FN ,p_LN,p_street,p_city,p_state,p_zip,p_phone,
-            p_dob ,p_sex,p_email
+            p_dob ,p_sex,p_email,"user"
 		);
 	END IF;
     SELECT LAST_INSERT_ID();
@@ -323,6 +341,20 @@ USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_deleteBeds`(p_idbed INT)
 BEGIN
 DELETE FROM bed where idbed=p_idbed;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_getAppointments
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getAppointments`(IN userID INT)
+BEGIN
+	SELECT * FROM appointment
+    WHERE idpatient = userID;
 END$$
 
 DELIMITER ;
@@ -421,36 +453,6 @@ BEGIN
     WHERE `user`.username = p_username;
 END$$
 
-DELIMITER ;
--- -----------------------------------------------------
--- procedure sp_getUser
--- -----------------------------------------------------
-
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getUser`(p_idUser INT)
-BEGIN
-SELECT * from test.user where idUser=p_idUser;
-END$$
-
-DELIMITER ;
-
--- -----------------------------------------------------
--- procedure sp_Identify_UserType
--- -----------------------------------------------------
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_Identify_UserType`(username varchar(45), password varchar(45))
-BEGIN
-SELECT idUser,(
-SELECT CASE
-         WHEN EXISTS (SELECT * FROM physician WHERE physician.idPhysician =idUser) THEN 'Physician'
-         WHEN EXISTS (SELECT * FROM nurse WHERE nurse.idNurse =idUser) THEN 'Nurse'
-         WHEN EXISTS (SELECT * FROM user WHERE user.idUser =idUser) THEN 'User'
-       END 
-) as type
-from user where user.username=username;
-END$$
 DELIMITER ;
 
 SET SQL_MODE=@OLD_SQL_MODE;

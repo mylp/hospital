@@ -225,12 +225,10 @@ def ManageBeds():
 
 @app.route('/api/refreshAppointment', methods=['POST'])
 def refreshAppointment():
-    _date = request.form['inputDate']
-
     conn = mysql.connect()
     cursor = conn.cursor()
 
-    cursor.callproc('get_appointments', (_date,))
+    cursor.callproc('sp_getAppointments', (session['user'],))
     dates = cursor.fetchall()
 
     return render_template("createAppointment.html", dates=dates)
