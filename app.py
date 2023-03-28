@@ -10,7 +10,7 @@ app = Flask(__name__)
 mysql = MySQL()
 
 app.config['MYSQL_DATABASE_USER'] = 'root'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'root3069'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'PepeSilvia1259#12!'
 app.config['MYSQL_DATABASE_DB'] = 'test'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 app.config['SECRET_KEY'] = '1234567890'
@@ -200,7 +200,8 @@ def changePassword():
     conn = mysql.connect()
     cursor = conn.cursor()
     if _password == _newPassword:
-        cursor.callproc('sp_changePassword', (_username, _newPassword))
+        password = generate_password_hash(_password)
+        cursor.callproc('sp_changePassword', (_username, password))
     else:
         return json.dumps({'error': 'Passwords do not match!'})
     data = cursor.fetchall()
@@ -261,12 +262,15 @@ def validateLogin():
 
     con = mysql.connect()
     cursor = con.cursor()
-    cursor.callproc('sp_validateLogin',(_username,_password))
+    cursor.callproc('sp_validateLogin',(_username,))
     data = cursor.fetchall()
 
     if len(data) > 0:
-        session['user'] = data[0][0]
-        return redirect('/userHome')
+        if check_password_hash(str(data[0][3]),_password):
+            session['user'] = data[0][0]
+            return redirect('/userHome')
+        else:
+            return render_template('error.html', error='Wrong Email address or Password')
     else:
         return render_template('error.html', error='Wrong Email address or Password')
 
@@ -287,11 +291,12 @@ def signUp():
     _password = request.form['inputPassword']
 
     if all((_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email)):
-
+        
+        password = generate_password_hash(_password)
         conn = mysql.connect()
         cursor = conn.cursor()
         cursor.callproc('sp_createUser',
-                        (_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email))
+                        (_username, password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email))
         data = cursor.fetchall()
 
         if len(data) == 1:
@@ -326,11 +331,11 @@ def signupPhysician():
 
     if all((_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _type, _spec,
             _rank, _deptId, _clinicId)):
-
+        password = generate_password_hash(_password)
         conn = mysql.connect()
         cursor = conn.cursor()
         cursor.callproc('sp_createPhysician', (
-            _username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _type, _spec,
+            _username, password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _type, _spec,
             _rank, _deptId, _clinicId))
         data = cursor.fetchall()
 
@@ -361,10 +366,10 @@ def signupNurse():
     _clinicId= request.form['ClinicID']
 
     if all( (_username,_password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email,_classification,_deptId,_clinicId)):
-        
+        password = generate_password_hash(_password)
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.callproc('sp_createNurse', (_username, _password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email,_classification,_deptId,_clinicId))
+        cursor.callproc('sp_createNurse', (_username, password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email,_classification,_deptId,_clinicId))
         data = cursor.fetchall()
 
         if len(data) == 0:

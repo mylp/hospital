@@ -32,6 +32,23 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
+
+-- -----------------------------------------------------
+-- Table `test`.`bed`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `test`.`bed` (
+  `idbed` INT NOT NULL AUTO_INCREMENT,
+  `idclinic` INT NULL DEFAULT NULL,
+  `room_number` VARCHAR(45) NOT NULL,
+  `occupancy_status` VARCHAR(45) NOT NULL,
+  `idpatient` INT NULL DEFAULT NULL,
+  PRIMARY KEY (`idbed`),
+  UNIQUE INDEX `idbed` (`idbed` ASC) VISIBLE)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
 -- -----------------------------------------------------
 -- Table `test`.`clinic`
 -- -----------------------------------------------------
@@ -45,21 +62,6 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
--- -----------------------------------------------------
--- Table `test`.`bed`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `test`.`bed` (
-  `idbed` INT NOT NULL AUTO_INCREMENT,
-  `idclinic` INT,
-  `room_number` VARCHAR(45) NOT NULL,
-  `occupancy_status` VARCHAR(45) NOT NULL,
-  `idpatient` INT,
-  
-  PRIMARY KEY (`idbed`),
-  UNIQUE INDEX `idbed` (`idbed` ASC) VISIBLE)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8mb4
-COLLATE = utf8mb4_0900_ai_ci;
 
 -- -----------------------------------------------------
 -- Table `test`.`nurse`
@@ -146,7 +148,7 @@ COLLATE = utf8mb4_0900_ai_ci;
 CREATE TABLE IF NOT EXISTS `test`.`user` (
   `iduser` INT NOT NULL AUTO_INCREMENT,
   `username` VARCHAR(45) NOT NULL,
-  `password` VARCHAR(45) NOT NULL,
+  `password` VARCHAR(103) NOT NULL,
   `first_name` VARCHAR(45) NOT NULL,
   `last_name` VARCHAR(45) NOT NULL,
   `street` VARCHAR(45) NOT NULL,
@@ -159,7 +161,7 @@ CREATE TABLE IF NOT EXISTS `test`.`user` (
   `email` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`iduser`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 9
+AUTO_INCREMENT = 10
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -184,12 +186,26 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
+-- procedure sp_addBeds
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addBeds`(idbed INT,idclinic INT,room_number varchar(45),occupancy_status varchar(45),idpatient INT)
+BEGIN
+insert into bed(idbed,idclinic,room_number,occupancy_status,idpatient)
+values(idbed,idclinic,room_number,occupancy_status,idpatient);
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
 -- procedure sp_changePassword
 -- -----------------------------------------------------
 
 DELIMITER $$
 USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_changePassword`(IN userID VARCHAR(45), IN `new_password` VARCHAR(45))
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_changePassword`(IN userID VARCHAR(45), IN `new_password` VARCHAR(103))
 BEGIN
 	UPDATE `user`
     SET `password` = new_password
@@ -205,7 +221,7 @@ DELIMITER ;
 DELIMITER $$
 USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createNurse`(
-	IN p_username VARCHAR(45),IN p_password VARCHAR(45),IN p_FN VARCHAR(45),
+	IN p_username VARCHAR(45),IN p_password VARCHAR(103),IN p_FN VARCHAR(45),
     IN p_LN VARCHAR(45),IN p_street VARCHAR(45),IN p_city VARCHAR(45),
     IN p_state VARCHAR(45),IN p_zip VARCHAR(45),IN p_phone VARCHAR(45),
     IN p_dob VARCHAR(45),IN p_sex VARCHAR(45),IN p_email VARCHAR(45),IN p_classification VARCHAR(45),IN p_deptId VARCHAR(45),
@@ -246,7 +262,7 @@ DELIMITER ;
 DELIMITER $$
 USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createPhysician`(
-	IN p_username VARCHAR(45),IN p_password VARCHAR(45),IN p_FN VARCHAR(45),
+	IN p_username VARCHAR(45),IN p_password VARCHAR(103),IN p_FN VARCHAR(45),
     IN p_LN VARCHAR(45),IN p_street VARCHAR(45),IN p_city VARCHAR(45),
     IN p_state VARCHAR(45),IN p_zip VARCHAR(45),IN p_phone VARCHAR(45),
     IN p_dob VARCHAR(45),IN p_sex VARCHAR(45),IN p_email VARCHAR(45),
@@ -288,7 +304,7 @@ DELIMITER ;
 DELIMITER $$
 USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createUser`(
-	IN p_username VARCHAR(45),IN p_password VARCHAR(45),IN p_FN VARCHAR(45),
+	IN p_username VARCHAR(45),IN p_password VARCHAR(103),IN p_FN VARCHAR(45),
     IN p_LN VARCHAR(45),IN p_street VARCHAR(45),IN p_city VARCHAR(45),
     IN p_state VARCHAR(45),IN p_zip VARCHAR(45),IN p_phone VARCHAR(45),
     IN p_dob VARCHAR(45),IN p_sex VARCHAR(45),IN p_email VARCHAR(45)
@@ -310,6 +326,58 @@ BEGIN
 		);
 	END IF;
     SELECT LAST_INSERT_ID();
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_deleteBeds
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_deleteBeds`(p_idbed INT)
+BEGIN
+DELETE FROM bed where idbed=p_idbed;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_getBeds
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getBeds`()
+BEGIN
+select * from bed;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_getPhysicianSchedules
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getPhysicianSchedules`()
+BEGIN
+SELECT * from test.schedule;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_getPhysiciansByNameAndId
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getPhysiciansByNameAndId`()
+BEGIN
+SELECT a.first_name, a.last_name, b.idphysician FROM test.user a JOIN test.physician b where a.iduser = b.idphysician;
 END$$
 
 DELIMITER ;
@@ -362,79 +430,11 @@ DELIMITER ;
 DELIMITER $$
 USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_validateLogin`(
-IN p_username VARCHAR(20),
-IN p_password VARCHAR(20)
+IN p_username VARCHAR(20)
 )
 BEGIN
     SELECT * FROM `user`
-    WHERE `user`.username = p_username and `user`.`password` = p_password;
-END$$
-
-DELIMITER ;
-
--- -----------------------------------------------------
--- procedure sp_getBeds
--- -----------------------------------------------------
-
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getBeds`()
-BEGIN
-select * from bed;
-END$$
-
-DELIMITER ;
-
--- -----------------------------------------------------
--- procedure sp_addBeds
--- -----------------------------------------------------
-
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addBeds`(idbed INT,idclinic INT,room_number varchar(45),occupancy_status varchar(45),idpatient INT)
-BEGIN
-insert into bed(idbed,idclinic,room_number,occupancy_status,idpatient)
-values(idbed,idclinic,room_number,occupancy_status,idpatient);
-END$$
-
-DELIMITER ;
-
--- -----------------------------------------------------
--- procedure sp_deleteBeds
--- -----------------------------------------------------
-
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_deleteBeds`(p_idbed INT)
-BEGIN
-DELETE FROM bed where idbed=p_idbed;
-END$$
-
-DELIMITER ;
-
-
--- -----------------------------------------------------
--- procedure sp_getPhysiciansByNameAndId
--- -----------------------------------------------------
-
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getPhysiciansByNameAndId`()
-BEGIN
-SELECT a.first_name, a.last_name, b.idphysician FROM test.user a JOIN test.physician b where a.iduser = b.idphysician;
-END$$
-
-DELIMITER ;
-
--- -----------------------------------------------------
--- procedure sp_getPhysicianSchedules
--- -----------------------------------------------------
-
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getPhysicianSchedules`()
-BEGIN
-SELECT * from test.schedule;
+    WHERE `user`.username = p_username;
 END$$
 
 DELIMITER ;
