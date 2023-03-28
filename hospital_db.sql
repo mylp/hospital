@@ -167,23 +167,7 @@ COLLATE = utf8mb4_0900_ai_ci;
 
 USE `test` ;
 
--- -----------------------------------------------------
--- procedure sp_Identify_UserType
--- -----------------------------------------------------
 
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_Identify_UserType`(username varchar(45), password varchar(45))
-BEGIN
-SELECT CASE
-         WHEN EXISTS (SELECT * FROM physician WHERE physician.username =username) THEN 'Physician'
-         WHEN EXISTS (SELECT * FROM nurse WHERE nurse.username =username) THEN 'Nurse'
-         WHEN EXISTS (SELECT * FROM user WHERE user.username =username) THEN 'User'
-       END;
-
-END$$
-
-DELIMITER ;
 
 -- -----------------------------------------------------
 -- procedure sp_addBeds
@@ -437,6 +421,36 @@ BEGIN
     WHERE `user`.username = p_username;
 END$$
 
+DELIMITER ;
+-- -----------------------------------------------------
+-- procedure sp_getUser
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getUser`(p_idUser INT)
+BEGIN
+SELECT * from test.user where idUser=p_idUser;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_Identify_UserType
+-- -----------------------------------------------------
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_Identify_UserType`(username varchar(45), password varchar(45))
+BEGIN
+SELECT idUser,(
+SELECT CASE
+         WHEN EXISTS (SELECT * FROM physician WHERE physician.idPhysician =idUser) THEN 'Physician'
+         WHEN EXISTS (SELECT * FROM nurse WHERE nurse.idNurse =idUser) THEN 'Nurse'
+         WHEN EXISTS (SELECT * FROM user WHERE user.idUser =idUser) THEN 'User'
+       END 
+) as type
+from user where user.username=username;
+END$$
 DELIMITER ;
 
 SET SQL_MODE=@OLD_SQL_MODE;
