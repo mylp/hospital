@@ -267,6 +267,19 @@ def createAppointment():
     else:
         return json.dumps({'error': str(data[0])})
 
+@app.route('/api/deleteAppointment', methods=['POST'])
+def deleteAppointment():
+    _appointmentID = request.form['inputAppointmentID']
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_deleteAppointment', (_appointmentID,))
+    data = cursor.fetchall()
+
+    if len(data) == 0:
+        return render_template('appointment.html')
+    else:
+        return json.dumps({'error': str(data[0])})
+
 @app.route('/api/validateLogin', methods=['POST', 'GET'])
 def validateLogin():
     _username = request.form['inputUsername']
