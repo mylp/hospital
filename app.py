@@ -233,9 +233,16 @@ def refreshAppointment():
     cursor = conn.cursor()
 
     cursor.callproc('sp_getAppointments', (session['user'],))
-    dates = cursor.fetchall()
+    appointments = cursor.fetchall()
+    formatted = []
+    for appointment in appointments:
+        individual = []
+        individual.append(str(appointment[1])) # Date)
+        individual.append(appointment[3]) # Physician ID (This should display the physician name)
+        individual.append(appointment[4]) # Description
+        formatted.append(individual)
 
-    return render_template("createAppointment.html", dates=dates)
+    return render_template("appointment.html", appointments=formatted)
 
 
 @app.route('/api/createAppointment', methods=['POST'])
