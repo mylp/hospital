@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS `test`.`appointment` (
   PRIMARY KEY (`idappointment`),
   UNIQUE INDEX `idappointment` (`idappointment` ASC) VISIBLE)
 ENGINE = InnoDB
-AUTO_INCREMENT = 2
+AUTO_INCREMENT = 4
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -163,7 +163,7 @@ CREATE TABLE IF NOT EXISTS `test`.`user` (
   `type` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`iduser`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 15
+AUTO_INCREMENT = 18
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -212,6 +212,27 @@ BEGIN
 	UPDATE `user`
     SET `password` = new_password
     WHERE iduser = userID;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_createAppointment
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createAppointment`(
+	IN `date` DATETIME,
+    IN physician_id INT,
+    IN patient_id INT,
+    IN reason TEXT
+)
+BEGIN
+	INSERT INTO appointment
+    (appointment_date, idpatient, idphysician, `description`)
+    VALUES
+    (`date`, patient_id, physician_id, reason);
 END$$
 
 DELIMITER ;

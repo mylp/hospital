@@ -247,20 +247,19 @@ def refreshAppointment():
 
 @app.route('/api/createAppointment', methods=['POST'])
 def createAppointment():
-    _date = request.form['inputDate']
-    _time = request.form['inputTime']
+    _date = request.form['inputDate'] + " " + request.form['inputTime']
     _physician = request.form['inputPhysician']
-    _patient = request.form['inputPatient']
+    _patient = session['user']
     _reason = request.form['inputReason']
 
     conn = mysql.connect()
     cursor = conn.cursor()
-    cursor.callproc('sp_createAppointment', (_date, _time, _physician, _patient, _reason))
+    cursor.callproc('sp_createAppointment', (_date, _physician, _patient, _reason))
     data = cursor.fetchall()
 
     if len(data) == 0:
         conn.commit()
-        return json.dumps({'message': 'Appointment created successfully !'})
+        return render_template('appointment.html')
     else:
         return json.dumps({'error': str(data[0])})
 
