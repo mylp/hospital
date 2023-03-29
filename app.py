@@ -164,6 +164,10 @@ def userHome():
     else:
         return render_template('error.html',error = 'Unauthorized Access')
 
+@app.route('/nurseHome')
+def nurseHome():
+    return render_template('nurseHome.html')
+
 @app.route('/adminHome')
 def adminHome():
     return render_template('adminHome.html')
@@ -270,6 +274,10 @@ def validateLogin():
                 return redirect('/userHome')
             elif data[0][13] == "phys":
                 return redirect('/physicianHome')
+            elif data[0][13] == "nurse":
+                return redirect('/nurseHome')
+            else:
+                return redirect('/adminHome')
         else:
             return render_template('error.html', error='Wrong Email address or Password')
     else:
