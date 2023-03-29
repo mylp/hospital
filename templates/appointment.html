@@ -38,10 +38,12 @@
 		<div class="p-5 mb-4 bg-light rounded-3">
 			<div class="container-fluid py-5">
 				<h3 class="display-5 fw-bold text-center">Appointments</h3>
-				<form id="form-refresh" action="/api/refreshAppointment" method="POST">
-					<button type="refresh" type="button">Refresh</button>
-				</form>
-				<div class="appointment"> <p>{{ appointments }}</p> </div>
+					<form id="form-refresh" action="/api/refreshAppointment" method="POST">
+						<h3 class="display-5 fw-bold text-center">
+							<button class="button">Refresh</button>
+							<p>{{appointments}}</p>
+						</h3>
+					</form>
 			</div>
 			<div class="container-fluid py-5">
 				<div class="display-5 fw-bold text-center">
