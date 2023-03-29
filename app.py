@@ -139,7 +139,20 @@ def getPhysicianSchedules():
 
 @app.route('/appointment')
 def showAppointment():
-    return render_template('appointment.html')
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    cursor.callproc('sp_getAppointments', (session['user'],))
+    appointments = cursor.fetchall()
+    formatted = []
+    for appointment in appointments:
+        individual = []
+        individual.append(str(appointment[1])) # Date)
+        individual.append(appointment[3]) # Physician ID (This should display the physician name)
+        individual.append(appointment[4]) # Description
+        formatted.append(individual)
+    unordered_list = "<ul><li>" + "</li><li>".join(str(x) for x in formatted) + "</li></ul>"
+    return render_template('appointment.html', appointments=unordered_list)
 
 
 @app.route('/createAppointment')
@@ -226,25 +239,6 @@ def ManageBeds():
     print(beds)
     return render_template('ManageBeds.html',headings=headings,beds=beds)
 
-
-@app.route('/api/refreshAppointment', methods=['POST'])
-def refreshAppointment():
-    conn = mysql.connect()
-    cursor = conn.cursor()
-
-    cursor.callproc('sp_getAppointments', (session['user'],))
-    appointments = cursor.fetchall()
-    formatted = []
-    for appointment in appointments:
-        individual = []
-        individual.append(str(appointment[1])) # Date)
-        individual.append(appointment[3]) # Physician ID (This should display the physician name)
-        individual.append(appointment[4]) # Description
-        formatted.append(individual)
-
-    return render_template("appointment.html", appointments=formatted)
-
-
 @app.route('/api/createAppointment', methods=['POST'])
 def createAppointment():
     _date = request.form['inputDate'] + " " + request.form['inputTime']
@@ -259,7 +253,17 @@ def createAppointment():
 
     if len(data) == 0:
         conn.commit()
-        return render_template('appointment.html')
+        cursor.callproc('sp_getAppointments', (session['user'],))
+        appointments = cursor.fetchall()
+        formatted = []
+        for appointment in appointments:
+            individual = []
+            individual.append(str(appointment[1])) # Date)
+            individual.append(appointment[3]) # Physician ID (This should display the physician name)
+            individual.append(appointment[4]) # Description
+            formatted.append(individual)
+        unordered_list = "<ul><li>" + "</li><li>".join(str(x) for x in formatted) + "</li></ul>"
+        return render_template('appointment.html', appointments=unordered_list)
     else:
         return json.dumps({'error': str(data[0])})
 
