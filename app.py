@@ -10,7 +10,7 @@ app = Flask(__name__)
 mysql = MySQL()
 
 app.config['MYSQL_DATABASE_USER'] = 'root'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'PepeSilvia1259#12!'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'root3069'
 app.config['MYSQL_DATABASE_DB'] = 'test'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 app.config['SECRET_KEY'] = '1234567890'
@@ -239,6 +239,18 @@ def ManageBeds():
     print(beds)
     return render_template('ManageBeds.html',headings=headings,beds=beds)
 
+
+@app.route('/api/refreshAppointment', methods=['POST'])
+def refreshAppointment():
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    cursor.callproc('sp_getAppointments', (session['user'],))
+    dates = cursor.fetchall()
+
+    return render_template("createAppointment.html", dates=dates)
+
+
 @app.route('/api/createAppointment', methods=['POST'])
 def createAppointment():
     _date = request.form['inputDate'] + " " + request.form['inputTime']
@@ -460,6 +472,14 @@ def adddeleteBed():
         return json.dumps({'html': '<span>Enter the required fields</span>'})
 
 
+@app.route('/userhome')
+def userhome():
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    print(session['user'])
+    cursor.callproc('sp_getUser',(session['user']))
+    data = cursor.fetchall()
+    return render_template('userhome.html', headings=headings,data=data)
 
 
 if __name__ == '__main__':

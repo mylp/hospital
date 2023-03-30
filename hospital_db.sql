@@ -118,6 +118,7 @@ DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
 
+
 -- -----------------------------------------------------
 -- Table `test`.`schedule`
 -- -----------------------------------------------------
@@ -353,6 +354,7 @@ END$$
 
 DELIMITER ;
 
+
 -- -----------------------------------------------------
 -- procedure sp_deleteBeds
 -- -----------------------------------------------------
@@ -393,6 +395,18 @@ END$$
 
 DELIMITER ;
 
+-- -----------------------------------------------------
+-- procedure sp_getUser
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getUser`(IN p_userid INT)
+BEGIN
+select * from user where iduser=p_userid;
+END$$
+
+DELIMITER ;
 -- -----------------------------------------------------
 -- procedure sp_getPhysicianSchedules
 -- -----------------------------------------------------
@@ -472,6 +486,71 @@ IN p_username VARCHAR(20)
 BEGIN
     SELECT * FROM `user`
     WHERE `user`.username = p_username;
+END$$
+
+DELIMITER ;
+
+
+
+-- -----------------------------------------------------
+-- Table `test`.`admin`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `test`.`admin` (
+  `idpadmin` INT NOT NULL,
+  `username` VARCHAR(45) NOT NULL,
+  `password` VARCHAR(103) NOT NULL,
+  `first_name` VARCHAR(45) NOT NULL,
+  `last_name` VARCHAR(45) NOT NULL,
+  `street` VARCHAR(45) NOT NULL,
+  `city` VARCHAR(45) NOT NULL,
+  `state` VARCHAR(45) NOT NULL,
+  `zip` VARCHAR(45) NOT NULL,
+  `phone` VARCHAR(45) NOT NULL,
+  `date_of_birth` VARCHAR(45) NOT NULL,
+  `sex` VARCHAR(45) NOT NULL,
+  `email` VARCHAR(45) NOT NULL,
+  `type` VARCHAR(45) NOT NULL,
+  `idDepartment` INT NOT NULL,
+  PRIMARY KEY (`idpadmin`),
+  UNIQUE INDEX `idpadmin` (`idpadmin` ASC) VISIBLE)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+insert into admin(`idpadmin`,`username`,`password`,`first_name`,`last_name`,`street`,`city`,`state`,`zip`,`phone`,
+            `date_of_birth`,`sex`,`email`,`type`,`idDepartment`)
+values(1,'admin','admin','admin','admin','admin','admin','admin','admin','admin','admin','admin','admin','admin',1);
+
+-- -----------------------------------------------------
+-- procedure sp_createAdmin
+-- --------- --------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createAdmin`(
+	IN p_username VARCHAR(45),IN p_password VARCHAR(103),IN p_FN VARCHAR(45),
+    IN p_LN VARCHAR(45),IN p_street VARCHAR(45),IN p_city VARCHAR(45),
+    IN p_state VARCHAR(45),IN p_zip VARCHAR(45),IN p_phone VARCHAR(45),
+    IN p_dob VARCHAR(45),IN p_sex VARCHAR(45),IN p_email VARCHAR(45), In p_deptId INT
+)
+BEGIN
+	if ( select exists (select 1 from user where username = p_username) ) THEN
+		select 'Username exists!!';
+	else
+
+        insert into admin
+        (
+			`username`,`password`,`first_name`,`last_name`,`street`,`city`,`state`,`zip`,`phone`,
+            `date_of_birth`,`sex`,`email`,`type`,`idDepartment`
+		)
+        values
+        (
+			p_username,p_password,p_FN ,p_LN,p_street,p_city,p_state,p_zip,p_phone,
+            p_dob ,p_sex,p_email,"admin",p_deptId
+		);
+	END IF;
+    SELECT LAST_INSERT_ID();
 END$$
 
 DELIMITER ;
