@@ -14,7 +14,7 @@ class Test(unittest.TestCase):
         response = self.app.post('/api/route', data=dict(
             inputFirst='John',
         ))
-        self.assertEqual(response.status_code, 302)  # redirect to /userHome
+        self.assertEqual(response.status_code, 302)
 
 if __name__ == '__main__':
     unittest.main()

@@ -7,7 +7,7 @@ app = Flask(__name__)
 mysql = MySQL()
 
 app.config['MYSQL_DATABASE_USER'] = 'root'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'Gooster1225!2'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'PepeSilvia1259#12!'
 app.config['MYSQL_DATABASE_DB'] = 'test'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 app.config['SECRET_KEY'] = '1234567890'
@@ -348,8 +348,8 @@ def validateLogin():
 def userHome():
     conn = mysql.connect()
     cursor = conn.cursor()
-    id = int(session['user'])
-    cursor.callproc('sp_getUser', id)
+    id = session['user']
+    cursor.callproc('sp_getUser', (id,))
     data = cursor.fetchall()
     return render_template('userhome.html', headings=headings,data=data)
 
