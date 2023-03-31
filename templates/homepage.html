@@ -23,17 +23,14 @@
                 <button class="buttonS" onclick="location.href='/signup'">Sign Up</button>
                 <button class="buttonL" onclick="location.href='/login'">Log In</button>
             </div>
-            <ul>
-                <li class="nav-item">
-                    <a href="/adminHome" class="nav-link">Admin</a>
-                </li>
-            </ul>
         </div>
         <br>
+        <div class="row border-bottom">
         <h2>About us</h2>
         <p>
             We are a small, privately owned hospital located in Iowa City, IA. We offer a variety of medical services to all. If you want to learn more, contact us via phone or fill out the form below.
         </p>
+        </div>
         <br>
     </header>
 
@@ -46,14 +43,14 @@
                 (319) 123-456<br>
                 ramhospital@gmail.com
             </p>
-            <form id="form-contact-us" action="/contacted" >
+            <form id="form-contact-us" action="/api/contacted" method="POST" >
                     <fieldset>
 						<legend>Fill out the following:</legend>
-                            First Name: <input type="text"><br><br>
-                            Last Name: <input type="text"><br><br>
-                            Your email: <input type="email"><br><br>
-                            Message: <input type="text"><br><br>
-                            <input id='submit' type="submit" value="Submit"  />
+                            First Name: <input id="fname" name="fname" type="text" required autofocus><br><br>
+                            Last Name: <input id="lname" name="lname" type="text" required autofocus><br><br>
+                            Your email: <input id="email" name="email" type="email" required autofocus><br><br>
+                            Message: <input id="message" name="message" type="text" required autofocus><br><br>
+                            <input id='submit' type="submit" value="Submit" />
 
                     </fieldset>
                 </form>
