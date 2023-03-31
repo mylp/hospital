@@ -2,15 +2,12 @@ from flask import Flask, render_template, request, json, session, redirect
 from werkzeug.security import generate_password_hash, check_password_hash
 from flaskext.mysql import MySQL
 
-from datetime import datetime
-import sys
-
 app = Flask(__name__)
 
 mysql = MySQL()
 
 app.config['MYSQL_DATABASE_USER'] = 'root'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'root3069'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'Gooster1225!2'
 app.config['MYSQL_DATABASE_DB'] = 'test'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 app.config['SECRET_KEY'] = '1234567890'
@@ -27,9 +24,43 @@ def showSignUp():
     return render_template('signup.html')
 
 
-@app.route('/contacted')
+@app.route('/api/contacted', methods=['POST'])
 def showContacted():
-    return render_template('contacted.html')
+    _fname = request.form['fname']
+    _lname = request.form['lname']
+    _email = request.form['email']
+    _message = request.form['message']
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_addContactUsMessage', (_fname, _lname, _email, _message))
+    data = cursor.fetchall()
+    if len(data) == 0:
+        conn.commit()
+        return render_template('/contacted.html')
+    else:
+        return json.dumps({'error': str(data[0])})
+
+
+@app.route('/contactUsMessageInbox')
+def showCUMessages():
+    data = getCUMessages()
+    if data is not None:
+        data = [d[1:] for d in data]
+        return render_template('/contactUsMessages.html', data=data)
+    else:
+        return render_template('/contactUsMessages.html', data=[])
+
+
+def getCUMessages():
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_getContactUsMessages')
+    data = cursor.fetchall()
+    if len(data) == 0:
+        return None
+    else:
+        return data
 
 
 @app.route('/setHours')
@@ -115,14 +146,12 @@ def getPhysiciansByIdUsingName(name):
 
 
 def getPhysicianSchedules():
-    lst = []
     conn = mysql.connect()
     cursor = conn.cursor()
     cursor.callproc('sp_getPhysicianSchedules')
     data = cursor.fetchall()
     if len(data) > 0:
         conn.commit()
-        listOfPhysicianNamesIds = data
         json.dumps({'message': 'Physician schedule successfully'})
     lst = data
     formatted = []
@@ -169,13 +198,6 @@ def logout():
     session.pop('user',None)
     return redirect('/')
 
-
-@app.route('/userHome')
-def userHome():
-    if session.get('user'):
-        return render_template('userHome.html')
-    else:
-        return render_template('error.html',error = 'Unauthorized Access')
 
 @app.route('/nurseHome')
 def nurseHome():
@@ -229,8 +251,8 @@ headings=("Bed Id","Clinic Id","Room Number","Occupancy Status","Patient Id")
 
 @app.route('/ManageBeds')
 def ManageBeds():
-    
- 
+
+
     conn = mysql.connect()
     cursor = conn.cursor()
 
@@ -303,7 +325,8 @@ def validateLogin():
     data = cursor.fetchall()
 
     if len(data) > 0:
-        if check_password_hash(str(data[0][2]),_password):
+        # definitely not safe security wise but need to be able to login in with original admin
+        if check_password_hash(str(data[0][2]),_password) or (_username =='admin' and _password=='admin'):
             session['user'] = data[0][0]
             if data[0][13] == "user":
                 return redirect('/userHome')
@@ -335,7 +358,7 @@ def signUp():
     _password = request.form['inputPassword']
 
     if all((_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email)):
-        
+
         password = generate_password_hash(_password)
         conn = mysql.connect()
         cursor = conn.cursor()
@@ -390,7 +413,7 @@ def signupPhysician():
             return json.dumps({'error': str(data[0])})
     else:
         return json.dumps({'html': '<span>Enter the required fields</span>'})
-    
+
 @app.route('/api/signupNurse', methods=['POST'])
 def signupNurse():
     _username=request.form['inputUsername']
@@ -423,8 +446,41 @@ def signupNurse():
             return json.dumps({'error': str(data[0])})
     else:
         return json.dumps({'html': '<span>Enter the required fields</span>'})
-    
 
+
+@app.route('/api/signupAdmin', methods=['POST'])
+def signupAmin():
+    _username = request.form['inputUsername']
+    _password = request.form['inputPassword']
+    _first = request.form['inputFirst']
+    _last = request.form['inputLast']
+    _street = request.form['inputStreet']
+    _city = request.form['inputCity']
+    _state = request.form['inputState']
+    _zip = request.form['inputZip']
+    _phone = request.form['inputPhone']
+    _dob = request.form['inputDOB']
+    _sex = request.form['inputSex']
+    _email = request.form['inputEmail']
+    _type = request.form['Type']
+    _deptId = int(request.form['DepartmentID'])
+
+    if all((_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _type,
+            _deptId)):
+        password = generate_password_hash(_password)
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.callproc('sp_createAdmin', (
+            _username, password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _type,
+            _deptId))
+        data = cursor.fetchall()
+        if len(data) == 0:
+            conn.commit()
+            return render_template('adminHome.html')
+        else:
+            return json.dumps({'error': data})
+    else:
+        return json.dumps({'html': '<span>Enter the required fields</span>'})
 
 
 @app.route('/api/addBed', methods=['POST'])
@@ -434,10 +490,10 @@ def addBed():
     room_number= request.form['roomNum']
     occupancy_status= request.form['status']
     idpatient= request.form['idPatient']
-    
-    
+
+
     if all( (idbed,idclinic,room_number,occupancy_status,idpatient)):
-        
+
         conn = mysql.connect()
         cursor = conn.cursor()
         cursor.callproc('sp_addBeds', (idbed,idclinic,room_number,occupancy_status,idpatient))
@@ -454,10 +510,10 @@ def addBed():
 @app.route('/api/deleteBed', methods=['POST'])
 def adddeleteBed():
     idbed= request.form['idBed']
-    
-    
+
+
     if all( (idbed)):
-        
+
         conn = mysql.connect()
         cursor = conn.cursor()
         cursor.callproc('sp_deleteBeds', (idbed))

@@ -18,6 +18,23 @@ CREATE SCHEMA IF NOT EXISTS `test` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4
 USE `test` ;
 
 -- -----------------------------------------------------
+-- Table `test`.`contact_us_messages`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `test`.`contact_us_messages` (
+  `messageID` INT NOT NULL AUTO_INCREMENT,
+  `first_name` VARCHAR(45) NOT NULL,
+  `last_name` VARCHAR(45) NOT NULL,
+  `email` VARCHAR(45) NOT NULL,
+  `message` MEDIUMTEXT NOT NULL,
+  PRIMARY KEY (`messageID`),
+  UNIQUE INDEX `messageID` (`messageID` ASC) VISIBLE)
+ENGINE = InnoDB
+AUTO_INCREMENT = 4
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
 -- Table `test`.`appointment`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `test`.`appointment` (
@@ -184,6 +201,40 @@ SELECT CASE
          WHEN EXISTS (SELECT * FROM user WHERE user.username =username) THEN 'User'
        END;
 
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_addContactUsMessage
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addContactUsMessage`(
+    IN first_name VARCHAR(45),
+    IN last_name VARCHAR(45),
+    IN email VARCHAR(45),
+    IN message MEDIUMTEXT
+)
+BEGIN
+	INSERT INTO contact_us_messages
+    (first_name, last_name, email, message)
+    VALUES
+    (first_name, last_name, email, message);
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_getContactUsMessages
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getContactUsMessages`()
+BEGIN
+SELECT * from test.contact_us_messages;
 END$$
 
 DELIMITER ;
@@ -497,19 +548,6 @@ DELIMITER ;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `test`.`admin` (
   `idpadmin` INT NOT NULL,
-  `username` VARCHAR(45) NOT NULL,
-  `password` VARCHAR(103) NOT NULL,
-  `first_name` VARCHAR(45) NOT NULL,
-  `last_name` VARCHAR(45) NOT NULL,
-  `street` VARCHAR(45) NOT NULL,
-  `city` VARCHAR(45) NOT NULL,
-  `state` VARCHAR(45) NOT NULL,
-  `zip` VARCHAR(45) NOT NULL,
-  `phone` VARCHAR(45) NOT NULL,
-  `date_of_birth` VARCHAR(45) NOT NULL,
-  `sex` VARCHAR(45) NOT NULL,
-  `email` VARCHAR(45) NOT NULL,
-  `type` VARCHAR(45) NOT NULL,
   `idDepartment` INT NOT NULL,
   PRIMARY KEY (`idpadmin`),
   UNIQUE INDEX `idpadmin` (`idpadmin` ASC) VISIBLE)
@@ -518,9 +556,11 @@ DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
 
-insert into admin(`idpadmin`,`username`,`password`,`first_name`,`last_name`,`street`,`city`,`state`,`zip`,`phone`,
-            `date_of_birth`,`sex`,`email`,`type`,`idDepartment`)
-values(1,'admin','admin','admin','admin','admin','admin','admin','admin','admin','admin','admin','admin','admin',1);
+insert into admin(`idpadmin`, `idDepartment`)
+values(1, 1);
+insert into user(`username`,`password`,`first_name`,`last_name`,`street`,`city`,`state`,`zip`,`phone`,
+            `date_of_birth`,`sex`,`email`, `type`)
+values('admin','admin','admin','admin','admin','admin','admin','admin','admin','admin','admin', 'admin', 'admin');
 
 -- -----------------------------------------------------
 -- procedure sp_createAdmin
@@ -532,25 +572,32 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createAdmin`(
 	IN p_username VARCHAR(45),IN p_password VARCHAR(103),IN p_FN VARCHAR(45),
     IN p_LN VARCHAR(45),IN p_street VARCHAR(45),IN p_city VARCHAR(45),
     IN p_state VARCHAR(45),IN p_zip VARCHAR(45),IN p_phone VARCHAR(45),
-    IN p_dob VARCHAR(45),IN p_sex VARCHAR(45),IN p_email VARCHAR(45), In p_deptId INT
+    IN p_dob VARCHAR(45),IN p_sex VARCHAR(45),IN p_email VARCHAR(45), IN p_type VARCHAR(45), IN p_deptId INT
 )
 BEGIN
-	if ( select exists (select 1 from user where username = p_username) ) THEN
+    if ( select exists (select 1 from `user` where username = p_username) ) THEN
 		select 'Username exists!!';
 	else
 
-        insert into admin
+        insert into `user`
         (
 			`username`,`password`,`first_name`,`last_name`,`street`,`city`,`state`,`zip`,`phone`,
-            `date_of_birth`,`sex`,`email`,`type`,`idDepartment`
+            `date_of_birth`,`sex`,`email`, `type`
 		)
         values
         (
 			p_username,p_password,p_FN ,p_LN,p_street,p_city,p_state,p_zip,p_phone,
-            p_dob ,p_sex,p_email,"admin",p_deptId
+            p_dob ,p_sex,p_email, p_type
+		);
+        insert into `admin`
+        (
+			`idpadmin`,`idDepartment`
+		)
+        values
+        (
+			LAST_INSERT_ID(), p_deptId
 		);
 	END IF;
-    SELECT LAST_INSERT_ID();
 END$$
 
 DELIMITER ;
