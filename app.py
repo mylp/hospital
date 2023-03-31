@@ -75,9 +75,7 @@ def showSetHours():
 def setHoursSuccess():
     return render_template('setHoursSuccess.html')
 
-@app.route('/seePhysSchedule')
-def seePhysSchedule():
-    return render_template('seePhysSchedule.html')
+
 
 @app.route('/api/setHours', methods=['POST'])
 def setHours():
@@ -233,6 +231,7 @@ def physicianHome():
 def account():
     return render_template('account.html')
 
+
 @app.route('/api/changePassword', methods=['POST'])
 def changePassword():
     _username = session['user']
@@ -266,8 +265,9 @@ def ManageBeds():
 
 @app.route('/api/createAppointment', methods=['POST'])
 def createAppointment():
+    p_names = getPhysiciansByNameAndId().keys()
     _date = request.form['inputDate'] + " " + request.form['inputTime']
-    _physician = request.form['inputPhysician']
+    _physician = getPhysiciansByIdUsingName(request.form["physician"])
     _patient = session['user']
     _reason = request.form['inputReason']
 
@@ -352,6 +352,7 @@ def validateLogin():
     else:
         return render_template('error.html', error='Wrong Email address or Password')
 
+userHeadings=("Username","First Name", "Last Name","Email")
 @app.route('/userHome')
 def userHome():
     conn = mysql.connect()
@@ -359,7 +360,27 @@ def userHome():
     id = session['user']
     cursor.callproc('sp_getUser', (id,))
     data = cursor.fetchall()
-    return render_template('userhome.html', headings=headings,data=data)
+    return render_template('userhome.html', headings=userHeadings,data=data)
+
+appointmentHeadings=("Appointment Date", "Description","Physician First Name", "Physician last Name")
+@app.route('/seeOwnAppointment')
+def seeOwnAppointment():
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    id = session['user']
+    cursor.callproc('sp_getAppointments', (id,))
+    data = cursor.fetchall()
+    return render_template('seeOwnAppointment.html',headings=appointmentHeadings,data=data)
+
+phyAppHeadings=("Appointment Date", "Description","Patient Id","Patient First Name", "Patient last Name")
+@app.route('/seePhysSchedule')
+def seePhysSchedul():
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    id = session['user']
+    cursor.callproc('sp_getPhysicianAppointments', (id,))
+    data = cursor.fetchall()
+    return render_template('seePhysSchedule.html',headings=phyAppHeadings,data=data)
 
 @app.route('/api/signup', methods=['POST'])
 def signUp():
@@ -541,6 +562,26 @@ def adddeleteBed():
         if len(data) == 0:
             conn.commit()
             return redirect('/ManageBeds')
+        else:
+            return json.dumps({'error': str(data[0])})
+    else:
+        return json.dumps({'html': '<span>Enter the required fields</span>'})
+
+@app.route('/api/assignBed', methods=['POST'])
+def assignBed():
+    idbed= request.form['idBed']
+    idpatient=request.form['idpatient']
+
+    if all( (idbed,idpatient)):
+
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.callproc('sp_assignBed', (idbed,idpatient))
+        data = cursor.fetchall()
+
+        if len(data) == 0:
+            conn.commit()
+            return redirect('/seePhysSchedule')
         else:
             return json.dumps({'error': str(data[0])})
     else:

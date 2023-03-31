@@ -295,12 +295,12 @@ DELIMITER ;
 
 DELIMITER $$
 USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createAppointment`(
-    IN physician_id INT,
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_findOwnPatient`(
+    IN p_physicianid INT
     
 )
 BEGIN
-	SELECT idpatient from appointment where idphysician=physician_id;
+	SELECT idpatient from appointment where idphysician=p_physicianid;
 END$$
 
 DELIMITER ;
@@ -442,8 +442,26 @@ DELIMITER $$
 USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getAppointments`(IN userID INT)
 BEGIN
-	SELECT * FROM appointment
-    WHERE idpatient = userID;
+	SELECT appointment.appointment_date, appointment.description, user.first_name, user.last_name
+	FROM appointment
+	INNER JOIN user ON appointment.idphysician = user.iduser
+    where appointment.idpatient=userID;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_getPhysicianAppointments
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getPhysicianAppointments`(IN userID INT)
+BEGIN
+	SELECT appointment.appointment_date, appointment.description,appointment.idpatient,user.first_name, user.last_name
+	FROM appointment
+	INNER JOIN user ON appointment.idpatient = user.iduser
+    where appointment.idphysician=userID;
 END$$
 
 DELIMITER ;
@@ -467,11 +485,10 @@ DELIMITER ;
 
 DELIMITER $$
 USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getAppointments`(In p_idbed INT, IN p_idpatient INT)
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_assignBed`(In p_idbed INT, IN p_idpatient INT)
 BEGIN
-	insert into `bed` (`idpatient`),
-    values(p_idpatient)
-    WHERE idbed = p_idbed;
+   UPDATE bed SET `idpatient`=p_idpatient WHERE idbed = p_idbed;
+    
 END$$
 
 DELIMITER ;
@@ -479,12 +496,11 @@ DELIMITER ;
 -- -----------------------------------------------------
 -- procedure sp_getUser
 -- -----------------------------------------------------
-
 DELIMITER $$
 USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getUser`(IN p_userid INT)
 BEGIN
-select * from user where iduser=p_userid;
+SELECT username,first_name,last_name,email from user where iduser=p_userid;
 END$$
 
 DELIMITER ;

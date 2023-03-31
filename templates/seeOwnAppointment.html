@@ -28,10 +28,7 @@
                 </a>
                 <ul class="nav nav-pills">
                     <li class="nav-item">
-                        <a href="/" class="nav-link" aria-current="page">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="/adminHome" class="nav-link active">Admin Home</a>
+                        <a href="/userhome" class="nav-link" aria-current="page">Home</a>
                     </li>
                     <li class="nav-item">
                       <a href="/logout" class="nav-link">Log Out</a>
@@ -45,7 +42,6 @@
 
         
     </div>
-    <h1>Your Schedule </h1>
     <table class="table">
        
         <tr class="table_header">
@@ -61,49 +57,7 @@
         </tr>
         {% endfor %}
         
-    </table>
-    
-
-
-
-
-      <form id="form-assignBed" action="/api/assignBed" method="POST">      
-        <!-- Trigger the modal with delete button -->
-        <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModalAssign">Assign Bed</button>
-      
-        <!-- Delete Modal -->
-        <div class="modal fade" id="myModalAssign" role="dialog">
-          <div class="modal-dialog">
-          
-            <!-- Modal content-->
-            <div class="modal-content">
-              <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h4 class="modal-title">Assign Bed</h4>
-              </div>
-              <div class="modal-body">
-                  <label for="idBed" class="sr-only">Bed Id</label>
-                  <input type="idBed" name="idBed" id="inputFirst" class="form-control" placeholder="Bed Id" required
-                      autofocus />
-                  <label for="idpatient" class="sr-only">Bed Id</label>
-                  <input type="idpatient" name="idpatient" id="inputFirst" class="form-control" placeholder="Patient Id" required
-                      autofocus />    
-                  <button class="btn btn-lg btn-primary btn-block" type="submit">
-                      Submit
-                  </button>
-      
-          </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-              </div>
-            </div>
-         
-            
-          </div>
-        </div>
-      </form> 
-      </div>
-      
+   
 
 
 </body>

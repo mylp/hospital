@@ -41,12 +41,17 @@
 					<input name="inputDate" id="inputDate" class="form-control" type="date" required autofocus />
 					<label for="inputTime" class="fw-bold"> Select a time </label>
 					<input name="inputTime" id="inputTime" class="form-control" type="time" required autofocus />
-					<label for="inputPhysician" class="fw-bold"> Select a physician </label>
-					<select name="inputPhysician" id="inputPhysician" class="form-select" required autofocus>
-						<option value="No preference">No preference</option>
-						<option value=1>Dr. Jones</option>
-						<option value=2>Dr. Brown</option>
-					</select>
+					
+						
+						<label for="physician" >Choose a Physician:</label>
+						<select name="physician" id="physician" required autofocus>
+							<option value="choose"> -- select a physician -- </option>
+							{% for n in p_names %}
+							  <option value="{{n}}">{{n}}</option>
+							{% endfor %}
+						</select>
+
+					
 					<label for="inputReason" class="fw-bold"> Reason for visit </label>
 					<input name="inputReason" id="inputReason" class="form-control" placeholder="" required autofocus />
 					<button class="btn btn-lg btn-primary btn-block" type="submit"> Submit </button>
