@@ -290,6 +290,21 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
+-- procedure sp_findOwnPatient
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createAppointment`(
+    IN physician_id INT,
+    
+)
+BEGIN
+	SELECT idpatient from appointment where idphysician=physician_id;
+END$$
+
+DELIMITER ;
+-- -----------------------------------------------------
 -- procedure sp_createNurse
 -- -----------------------------------------------------
 
@@ -442,6 +457,21 @@ USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getBeds`()
 BEGIN
 select * from bed;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_assignBed
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getAppointments`(In p_idbed INT, IN p_idpatient INT)
+BEGIN
+	insert into `bed` (`idpatient`),
+    values(p_idpatient)
+    WHERE idbed = p_idbed;
 END$$
 
 DELIMITER ;
