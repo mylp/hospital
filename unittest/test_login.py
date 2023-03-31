@@ -9,7 +9,7 @@ from app import app
 
 
 
-class TestSignUp(TestCase):
+class TestLogin(TestCase):
 
     def create_app(self):
         return app

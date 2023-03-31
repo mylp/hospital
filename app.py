@@ -173,18 +173,18 @@ def getPhysicianSchedules():
 def showAppointment():
     conn = mysql.connect()
     cursor = conn.cursor()
-
     cursor.callproc('sp_getAppointments', (session['user'],))
     appointments = cursor.fetchall()
     formatted = []
     for appointment in appointments:
         individual = []
+        individual.append(appointment[0]) # Appointment ID (This should be hidden
         individual.append(str(appointment[1])) # Date)
         individual.append(appointment[3]) # Physician ID (This should display the physician name)
         individual.append(appointment[4]) # Description
         formatted.append(individual)
-    unordered_list = "<ul><li>" + "</li><li>".join(str(x) for x in formatted) + "</li></ul>"
-    return render_template('appointment.html', appointments=unordered_list)
+    return render_template('appointment.html', appointments=formatted)
+
 
 
 @app.route('/createAppointment')
@@ -264,18 +264,6 @@ def ManageBeds():
     print(beds)
     return render_template('ManageBeds.html',headings=headings,beds=beds)
 
-
-@app.route('/api/refreshAppointment', methods=['POST'])
-def refreshAppointment():
-    conn = mysql.connect()
-    cursor = conn.cursor()
-
-    cursor.callproc('sp_getAppointments', (session['user'],))
-    dates = cursor.fetchall()
-
-    return render_template("createAppointment.html", dates=dates)
-
-
 @app.route('/api/createAppointment', methods=['POST'])
 def createAppointment():
     _date = request.form['inputDate'] + " " + request.form['inputTime']
@@ -299,14 +287,26 @@ def createAppointment():
             individual.append(appointment[3]) # Physician ID (This should display the physician name)
             individual.append(appointment[4]) # Description
             formatted.append(individual)
-        unordered_list = "<ul><li>" + "</li><li>".join(str(x) for x in formatted) + "</li></ul>"
-        return render_template('appointment.html', appointments=unordered_list)
+        return render_template('appointment.html', appointments=formatted)
     else:
         return json.dumps({'error': str(data[0])})
 
-@app.route('/api/deleteAppointment', methods=['POST'])
-def deleteAppointment():
+@app.route('/api/changeAppointment', methods=['POST'])
+def changeAppointment():
     _appointmentID = request.form['inputAppointmentID']
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_deleteAppointment', (_appointmentID,))
+    data = cursor.fetchall()
+
+    if len(data) == 0:
+        return render_template('appointment.html')
+    else:
+        return json.dumps({'error': str(data[0])})
+
+@app.route('/api/deleteAppointment', methods=['GET', 'POST'])
+def deleteAppointment():
+    _appointmentID = request.args.get('appointment_id')
     conn = mysql.connect()
     cursor = conn.cursor()
     cursor.callproc('sp_deleteAppointment', (_appointmentID,))

@@ -36,23 +36,35 @@
 		<div class="p-5 mb-4 bg-light rounded-3">
 			<div class="container-fluid py-5">
 				<h3 class="display-5 fw-bold text-center">Appointments</h3>
-				<!-- <table>
-					<tr>
-						<th>Doctor</th>
+				<style>
+					th, td {
+					  padding: 10px;
+					  line-height: 1;
+					}
+				  </style>
+				<table>
+					<thead>
+					  <tr>
 						<th>Date</th>
-						<th>Time</th>
-						<th>Reason</th>
-						<th>Status</th>
-					</tr>
-					<tr>
-						<td>Dr. John Doe</td>
-						<td>2021-12-12</td>
-						<td>12:00</td>
-						<td>Checkup</td>
-						<td>Confirmed</td>
-					</tr>
-				</table> -->
-				{{ appointments | safe }}
+						<th>Physician</th>
+						<th>Description</th>
+						<th>Actions</th>
+					  </tr>
+					</thead>
+					<tbody>
+					  {% for appointment in appointments %}
+					  <tr>
+						<td>{{ appointment[1] }}</td>
+						<td>{{ appointment[2] }}</td>
+						<td>{{ appointment[3] }}</td>
+						<td>
+							<a href="{{ url_for('changeAppointment', appointment_id=appointment[0]) }}">Change</a>
+							<a href="{{ url_for('deleteAppointment', appointment_id=appointment[0]) }}">Delete</a>
+						  </td>
+					  </tr>
+					  {% endfor %}
+					</tbody>
+				  </table>
 			</div>
 			<div class="container-fluid py-5">
 				<div class="display-5 fw-bold text-center">
