@@ -311,11 +311,19 @@ def deleteAppointment():
     cursor = conn.cursor()
     cursor.callproc('sp_deleteAppointment', (_appointmentID,))
     data = cursor.fetchall()
-
     if len(data) == 0:
-        return render_template('appointment.html')
+        conn.commit()
+
+        cursor.callproc('sp_getAppointments', (session['user'],))
+        data = cursor.fetchall()
+        if len(data) > 0:
+            conn.commit()
+            return render_template('appointment.html', appointments=data)
+        else:
+            return json.dumps({'error': str(data[0])})
     else:
         return json.dumps({'error': str(data[0])})
+
 
 @app.route('/api/validateLogin', methods=['POST', 'GET'])
 def validateLogin():
