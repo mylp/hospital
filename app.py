@@ -75,6 +75,9 @@ def showSetHours():
 def setHoursSuccess():
     return render_template('setHoursSuccess.html')
 
+@app.route('/seePhysSchedule')
+def seePhysSchedule():
+    return render_template('seePhysSchedule.html')
 
 @app.route('/api/setHours', methods=['POST'])
 def setHours():

@@ -466,7 +466,7 @@ DELIMITER $$
 USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getPhysicianSchedules`()
 BEGIN
-SELECT * from test.schedule;
+SELECT * from test.schedule ;
 END$$
 
 DELIMITER ;
