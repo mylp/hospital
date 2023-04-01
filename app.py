@@ -382,7 +382,7 @@ def validateLogin():
     else:
         return render_template('error.html', error='Wrong Email address or Password')
 
-userHeadings=("Username","First Name", "Last Name","Email")
+userHeadings=("First Name", "Last Name","Street", "City", "State", "Zip", "Phone Number", "DOB", "Sex", "Email")
 @app.route('/userHome')
 def userHome():
     conn = mysql.connect()
@@ -390,7 +390,7 @@ def userHome():
     id = session['user']
     cursor.callproc('sp_getUser', (id,))
     data = cursor.fetchall()
-    return render_template('userhome.html', headings=userHeadings,data=data)
+    return render_template('userhome.html', headings=userHeadings,data=data[0][3:-1])
 
 appointmentHeadings=("Appointment Date", "Description","Physician First Name", "Physician last Name")
 @app.route('/seeOwnAppointment')

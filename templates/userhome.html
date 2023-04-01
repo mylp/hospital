@@ -49,13 +49,11 @@
                     <th class="table_cell">{{header}}</td>
                 {% endfor %}
                 </tr>
-                {% for row in data %}
                 <tr class="table_row">
-                    {% for cell in row %}
-                        <th class="table_cell">{{cell}}</td>
-                    {% endfor %}
-                </tr>
+                {% for d in data %}
+                    <td>{{d}}</td>
                 {% endfor %}
+                </tr>
             <table>
             
             
