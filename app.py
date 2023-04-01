@@ -6,12 +6,15 @@ app = Flask(__name__)
 
 mysql = MySQL()
 
-app.config['MYSQL_DATABASE_USER'] = 'root'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'PepeSilvia1259#12!'
-app.config['MYSQL_DATABASE_DB'] = 'test'
-app.config['MYSQL_DATABASE_HOST'] = 'localhost'
-app.config['SECRET_KEY'] = '1234567890'
-mysql.init_app(app)
+
+def connect_to_db(app):
+    app.config['MYSQL_DATABASE_USER'] = 'root'
+    app.config['MYSQL_DATABASE_PASSWORD'] = 'Gooster1225!2'
+    app.config['MYSQL_DATABASE_DB'] = 'test'
+    app.config['MYSQL_DATABASE_HOST'] = 'localhost'
+    app.config['SECRET_KEY'] = '1234567890'
+    mysql.app = app
+    mysql.init_app(app)
 
 
 @app.route('/')
@@ -430,19 +433,18 @@ def signupPhysician():
     _dob = request.form['inputDOB']
     _sex = request.form['inputSex']
     _email = request.form['inputEmail']
-    _type = request.form['Type']
     _spec = request.form['Specialization']
     _rank = request.form['Rank']
     _deptId = request.form['DepartmentID']
     _clinicId = request.form['ClinicID']
 
-    if all((_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _type, _spec,
+    if all((_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _spec,
             _rank, _deptId, _clinicId)):
         password = generate_password_hash(_password)
         conn = mysql.connect()
         cursor = conn.cursor()
         cursor.callproc('sp_createPhysician', (
-            _username, password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _type, _spec,
+            _username, password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _spec,
             _rank, _deptId, _clinicId))
         data = cursor.fetchall()
 
@@ -592,4 +594,5 @@ def assignBed():
 
 
 if __name__ == '__main__':
+    connect_to_db(app)
     app.run(debug=True)

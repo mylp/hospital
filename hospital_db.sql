@@ -123,7 +123,6 @@ COLLATE = utf8mb4_0900_ai_ci;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `test`.`physician` (
   `idphysician` INT NOT NULL,
-  `Type` VARCHAR(45) NOT NULL,
   `Specialization` VARCHAR(45) NOT NULL,
   `DepartmentID` VARCHAR(45) NOT NULL,
   `ClinicID` VARCHAR(45) NOT NULL,
@@ -356,7 +355,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createPhysician`(
     IN p_LN VARCHAR(45),IN p_street VARCHAR(45),IN p_city VARCHAR(45),
     IN p_state VARCHAR(45),IN p_zip VARCHAR(45),IN p_phone VARCHAR(45),
     IN p_dob VARCHAR(45),IN p_sex VARCHAR(45),IN p_email VARCHAR(45),
-    IN p_type VARCHAR(45),IN p_specialization VARCHAR(45),IN p_deptId VARCHAR(45),
+    IN p_specialization VARCHAR(45),IN p_deptId VARCHAR(45),
     IN p_clinicId VARCHAR(45), IN p_rank VARCHAR(45)
 )
 BEGIN
@@ -376,11 +375,11 @@ BEGIN
 		);
         insert into `physician`
         (
-			idphysician, `Type`,`Specialization`,`DepartmentID`,`ClinicID`,`Rank`
+			idphysician,`Specialization`,`DepartmentID`,`ClinicID`,`Rank`
 		)
         values
         (
-			LAST_INSERT_ID(), p_type,p_specialization, p_deptId, p_clinicId,p_rank
+			LAST_INSERT_ID(),p_specialization, p_deptId, p_clinicId,p_rank
 		);
 	END IF;
 END$$
