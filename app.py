@@ -74,6 +74,13 @@ def showSetHours():
     return render_template('setHours.html', days=days, p_names=p_names, schedules=schedules)
 
 
+@app.route('/ownSchedule')
+def ownSchedule():
+    days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    p_names = getPhysiciansByNameAndId().keys()
+    schedules = getPhysicianSchedulesById()
+    return render_template('ownSchedule.html', days=days, p_names=p_names, schedules=schedules)
+
 @app.route('/setHoursSuccess')
 def setHoursSuccess():
     return render_template('setHoursSuccess.html')
@@ -168,6 +175,26 @@ def getPhysicianSchedules():
         formatted.append(individual)
 
     return formatted
+def getPhysicianSchedulesById():
+    
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_getPhysicianSchedulesById',(session['user'],))
+    data = cursor.fetchall()
+    if len(data) > 0:
+        conn.commit()
+        json.dumps({'message': 'Physician schedule successfully'})
+    lst = data
+    formatted = []
+    for tup in lst:
+        individual = []
+        name = [k for k, v in getPhysiciansByNameAndId().items() if v == tup[0]][0]
+        individual.append(name)
+        for time in tup[8:]:
+            individual.append(time)
+        formatted.append(individual)
+
+    return formatted
 
 
 @app.route('/appointment')
@@ -190,7 +217,8 @@ def showAppointment():
 
 @app.route('/createAppointment')
 def showScheduleAppointment():
-    return render_template('createAppointment.html')
+    p_names = getPhysiciansByNameAndId().keys()
+    return render_template('createAppointment.html',p_names=p_names)
 
 
 @app.route('/login')

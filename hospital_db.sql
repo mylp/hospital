@@ -516,6 +516,19 @@ END$$
 
 DELIMITER ;
 
+
+-- -----------------------------------------------------
+-- procedure sp_getPhysicianSchedulesById
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getPhysicianSchedulesById`(IN p_userid INT)
+BEGIN
+SELECT * from test.schedule where idphysician=p_userid;
+END$$
+
+DELIMITER ;
 -- -----------------------------------------------------
 -- procedure sp_getPhysiciansByNameAndId
 -- -----------------------------------------------------
