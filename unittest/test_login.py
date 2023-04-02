@@ -7,6 +7,8 @@ from app import app, connect_to_db
 import unittest
 
 
+# MUST RUN TEST_SIGN.PY BEFORE RUNNING TEST_LOGIN.PY
+
 class TestLogin(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -15,8 +17,6 @@ class TestLogin(unittest.TestCase):
         # Connect to database
         connect_to_db(app)
 
-
-    # this only works if there is already a user with this username/pwd in our db
     def test_login_with_correct_credentials_user(self):
         response = self.client.post('/api/validateLogin', data=dict(
             inputUsername='audrey',
@@ -33,7 +33,6 @@ class TestLogin(unittest.TestCase):
         self.assertEqual('/adminHome', response.location)
         self.assertEqual(302, response.status_code)
 
-    # this only works if there is already a user with this username/pwd in our db
     def test_login_with_correct_credentials_physician(self):
         response = self.client.post('/api/validateLogin', data=dict(
             inputUsername='physician',
@@ -42,7 +41,6 @@ class TestLogin(unittest.TestCase):
         self.assertEqual('/physicianHome', response.location)
         self.assertEqual(302, response.status_code)
 
-    # this only works if there is already a user with this username/pwd in our db
     def test_login_with_correct_credentials_nurse(self):
         response = self.client.post('/api/validateLogin', data=dict(
             inputUsername='nurse',
