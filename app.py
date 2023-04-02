@@ -169,8 +169,9 @@ def getPhysicianSchedules():
         formatted.append(individual)
 
     return formatted
+
 def getPhysicianSchedulesById():
-    
+
     conn = mysql.connect()
     cursor = conn.cursor()
     cursor.callproc('sp_getPhysicianSchedulesById',(session['user'],))
@@ -613,12 +614,27 @@ def assignBed():
 
 
 # for testing purposes only
+###############################
 def deleteUser(username):
     conn = mysql.connect()
     cursor = conn.cursor()
     cursor.callproc('sp_deleteUser', (username,))
     conn.commit()
 
+
+def createPhysician(uname, pwd, fname, lname, st, city, state, zip, ph, dob, s, e, spec, rank, dID, cID):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_createPhysician', (uname, pwd, fname, lname, st, city, state, zip, ph, dob, s, e, spec, rank, dID, cID,))
+    conn.commit()
+
+
+def deleteSchedule(pid):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_deleteSchedule', (pid,))
+    conn.commit()
+###############################
 
 
 if __name__ == '__main__':

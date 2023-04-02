@@ -446,6 +446,21 @@ END$$
 
 DELIMITER ;
 
+
+-- -----------------------------------------------------
+-- procedure sp_deleteSchedule
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_deleteSchedule`(pid INT)
+BEGIN
+DELETE FROM schedule where idphysician=pid;
+END$$
+
+DELIMITER ;
+
+
 -- -----------------------------------------------------
 -- procedure sp_getAppointments
 -- -----------------------------------------------------
