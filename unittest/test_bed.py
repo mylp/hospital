@@ -1,38 +1,38 @@
 import unittest
 import os
 import sys
-from flask import url_for
-from flask_testing import TestCase
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from app import app
+from app import app, connect_to_db
 
 
+class TestAppointment(unittest.TestCase):
 
-class TestAppointment(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Get the Flask test client
+        cls.client = app.test_client()
+        # Connect to database
+        connect_to_db(app)
 
-    def bed_created(self):
-        response = self.client.post('/api/ManageBeds', data=dict(
-            idBede=1,
+    def test_bed_created(self):
+        response = self.client.post('/api/addBed', data=dict(
+            idBed=1000000,
             idClinic=1,
-            roomNum=1,
-            status=1,
+            roomNum='1',
+            status='testBed',
             idPatient=0,
-            
+
         ))
-        self.assertEquals(response.location, '/ManageBeds')
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual('/ManageBeds', response.location)
+        self.assertEqual(302, response.status_code)
 
-
-    
-    def bed_deleted(self):
-        response = self.client.post('/api/ManageBeds', data=dict(
-            idBede=1,          
+    def test_bed_deleted(self):
+        response = self.client.post('/api/deleteBed', data=dict(
+            idBed=1000000,
         ))
-        self.assertEquals(response.location, '/ManageBeds')
-        self.assertEquals(response.status_code, 200)
-
-        
+        self.assertEqual('/ManageBeds', response.location)
+        self.assertEqual(302, response.status_code)
 
 
 if __name__ == '__main__':

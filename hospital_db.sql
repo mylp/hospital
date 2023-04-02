@@ -434,6 +434,19 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
+-- procedure sp_deleteUser
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_deleteUser`(p_username VARCHAR)
+BEGIN
+DELETE FROM user where username=p_username;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
 -- procedure sp_getAppointments
 -- -----------------------------------------------------
 

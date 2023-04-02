@@ -1,24 +1,22 @@
 import os
 import sys
 
-from werkzeug.security import generate_password_hash
-
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from app import app, connect_to_db, session
+from app import app, connect_to_db
 
 import unittest
 
 
-class TestWebApp(unittest.TestCase):
-    def setUp(self):
+class TestLogin(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
         # Get the Flask test client
-        self.client = app.test_client()
-        # Show Flask errors that happen during tests
-        app.config['TESTING'] = True
+        cls.client = app.test_client()
         # Connect to database
         connect_to_db(app)
 
 
+    # this only works if there is already a user with this username/pwd in our db
     def test_login_with_correct_credentials_user(self):
         response = self.client.post('/api/validateLogin', data=dict(
             inputUsername='audrey',
@@ -35,6 +33,7 @@ class TestWebApp(unittest.TestCase):
         self.assertEqual('/adminHome', response.location)
         self.assertEqual(302, response.status_code)
 
+    # this only works if there is already a user with this username/pwd in our db
     def test_login_with_correct_credentials_physician(self):
         response = self.client.post('/api/validateLogin', data=dict(
             inputUsername='physician',
@@ -43,6 +42,7 @@ class TestWebApp(unittest.TestCase):
         self.assertEqual('/physicianHome', response.location)
         self.assertEqual(302, response.status_code)
 
+    # this only works if there is already a user with this username/pwd in our db
     def test_login_with_correct_credentials_nurse(self):
         response = self.client.post('/api/validateLogin', data=dict(
             inputUsername='nurse',

@@ -8,7 +8,7 @@ mysql = MySQL()
 
 def connect_to_db(app):
     app.config['MYSQL_DATABASE_USER'] = 'root'
-    app.config['MYSQL_DATABASE_PASSWORD'] = 'PepeSilvia1259#12!'
+    app.config['MYSQL_DATABASE_PASSWORD'] = 'Gooster1225!2'
     app.config['MYSQL_DATABASE_DB'] = 'test'
     app.config['MYSQL_DATABASE_HOST'] = 'localhost'
     app.config['SECRET_KEY'] = '1234567890'
@@ -80,11 +80,6 @@ def ownSchedule():
     schedules = getPhysicianSchedulesById()
     return render_template('ownSchedule.html', days=days, p_names=p_names, schedules=schedules)
 
-@app.route('/setHoursSuccess')
-def setHoursSuccess():
-    return render_template('setHoursSuccess.html')
-
-
 
 @app.route('/api/setHours', methods=['POST'])
 def setHours():
@@ -129,7 +124,7 @@ def setHours():
     if len(data) == 0:
         conn.commit()
         json.dumps({'message': 'Hours add successfully!'})
-        return redirect('/setHoursSuccess')
+        return redirect('/setHours')
     else:
         return json.dumps({'error': str(data[0])})
 
@@ -477,7 +472,7 @@ def signupPhysician():
 
         if len(data) == 0:
             conn.commit()
-            return render_template('adminHome.html')
+            return redirect('/adminHome')
         else:
             return json.dumps({'error': str(data[0])})
     else:
@@ -510,7 +505,7 @@ def signupNurse():
 
         if len(data) == 0:
             conn.commit()
-            return render_template('adminHome.html')
+            return redirect('/adminHome')
         else:
             return json.dumps({'error': str(data[0])})
     else:
@@ -545,7 +540,7 @@ def signupAmin():
         data = cursor.fetchall()
         if len(data) == 0:
             conn.commit()
-            return render_template('adminHome.html')
+            return redirect('/adminHome')
         else:
             return json.dumps({'error': data})
     else:
@@ -585,7 +580,7 @@ def adddeleteBed():
 
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.callproc('sp_deleteBeds', (idbed))
+        cursor.callproc('sp_deleteBeds', (idbed,))
         data = cursor.fetchall()
 
         if len(data) == 0:
@@ -617,6 +612,12 @@ def assignBed():
         return json.dumps({'html': '<span>Enter the required fields</span>'})
 
 
+# for testing purposes only
+def deleteUser(username):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_deleteUser', (username,))
+    conn.commit()
 
 
 
