@@ -8,7 +8,7 @@ mysql = MySQL()
 
 def connect_to_db(app):
     app.config['MYSQL_DATABASE_USER'] = 'root'
-    app.config['MYSQL_DATABASE_PASSWORD'] = 'Gooster1225!2'
+    app.config['MYSQL_DATABASE_PASSWORD'] = 'PepeSilvia1259#12!'
     app.config['MYSQL_DATABASE_DB'] = 'test'
     app.config['MYSQL_DATABASE_HOST'] = 'localhost'
     app.config['SECRET_KEY'] = '1234567890'
@@ -203,8 +203,7 @@ def showAppointment():
         individual = []
         individual.append(appointment[0]) # Appointment ID (This should be hidden
         individual.append(str(appointment[1])) # Date)
-        individual.append(appointment[3]) # Physician ID (This should display the physician name)
-        individual.append(appointment[4]) # Description
+        individual.append(appointment[2]) # Physician ID (This should display the physician name)
         formatted.append(individual)
     return render_template('appointment.html', appointments=formatted)
 
@@ -309,9 +308,9 @@ def createAppointment():
         formatted = []
         for appointment in appointments:
             individual = []
-            individual.append(str(appointment[1])) # Date)
-            individual.append(appointment[3]) # Physician ID (This should display the physician name)
-            individual.append(appointment[4]) # Description
+            individual.append(appointment[0]) # Date)
+            individual.append(appointment[1]) # Physician ID (This should display the physician name)
+            individual.append(appointment[2]) # Description
             formatted.append(individual)
         return render_template('appointment.html', appointments=formatted)
     else:
