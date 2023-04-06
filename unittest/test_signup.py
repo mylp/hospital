@@ -30,7 +30,6 @@ class TestSignUp(unittest.TestCase):
             inputUsername='audrey',
             inputPassword='audrey'
         ))
-        deleteUser('audrey')
         self.assertEqual('/userHome', response.location)
         self.assertEqual(302, response.status_code)
 
@@ -54,7 +53,6 @@ class TestSignUp(unittest.TestCase):
             ClinicID='10'
 
         ))
-        deleteUser('physician')
         self.assertEqual('/adminHome', response.location)
         self.assertEqual(302, response.status_code)
 
@@ -77,7 +75,6 @@ class TestSignUp(unittest.TestCase):
             ClinicID='1'
 
         ))
-        deleteUser('nurse')
         self.assertEqual('/adminHome', response.location)
         self.assertEqual(302, response.status_code)
 
@@ -98,7 +95,6 @@ class TestSignUp(unittest.TestCase):
             Type='admin',
             DepartmentID=9
         ))
-        deleteUser('admin1')
         self.assertEqual('/adminHome', response.location)
         self.assertEqual(302, response.status_code)
 
