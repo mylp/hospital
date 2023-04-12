@@ -322,7 +322,6 @@ def createAppointment():
 def saveAppointment():
     _date = request.form['inputDate'] + " " + request.form['inputTime']
     _physician = getPhysiciansByIdUsingName(request.form["physician"])
-    _patient = session['user']
     _reason = request.form['inputReason']
     _appointmentID = request.form['inputID']
 
@@ -333,8 +332,7 @@ def saveAppointment():
 
     if len(data) == 0:
         conn.commit()
-        new_appointments = getAppointments()
-        return render_template('appointment.html', appointments=new_appointments)
+        return redirect('/appointment')
     else:
         return json.dumps({'error': str(data[0])})
 
@@ -355,8 +353,9 @@ def modifyAppointment():
     date = date.strftime("%Y-%m-%d")
     selected = [selected[0], date, time, selected[2], selected[3]]
     appointments = [appointment for appointment in appointments if appointment[0] != _appointmentID]
+    for appointment in appointments:
+        appointment[2] = getPhysicianNameByID(appointment[2])
     selected_phys = getPhysicianNameByID(selected[3])
-    # Need to get the selected physicians name based on ID
     return render_template('modifyAppointment.html', appointments=unselected, p_names=phys, selected=selected, selected_phys=selected_phys)
 
 @app.route('/api/deleteAppointment', methods=['GET', 'POST'])
