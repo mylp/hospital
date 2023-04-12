@@ -170,6 +170,16 @@ def getPhysicianSchedules():
 
     return formatted
 
+def getPhysicianNameByID(id):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_getPhysicianNameByID', (id,))
+    data = cursor.fetchall()
+    if len(data) > 0:
+        conn.commit()
+        json.dumps({'message': 'Physician name successfully'})
+    return data[0][0] + " " + data[0][1]
+
 def getPhysicianSchedulesById():
 
     conn = mysql.connect()
@@ -191,23 +201,23 @@ def getPhysicianSchedulesById():
 
     return formatted
 
-
-@app.route('/appointment')
-def showAppointment():
+def getAppointments():
     conn = mysql.connect()
     cursor = conn.cursor()
     cursor.callproc('sp_getAppointments', (session['user'],))
     appointments = cursor.fetchall()
     formatted = []
     for appointment in appointments:
-        individual = []
-        individual.append(appointment[0]) # Appointment ID (This should be hidden
-        individual.append(str(appointment[1])) # Date)
-        individual.append(appointment[2]) # Physician ID (This should display the physician name)
+        individual = [appointment[0], appointment[1], appointment[2], appointment[3]]
         formatted.append(individual)
-    return render_template('appointment.html', appointments=formatted)
+    return formatted
 
-
+@app.route('/appointment')
+def showAppointment():
+    user_appointments = getAppointments()
+    for appointment in user_appointments:
+        appointment[2] = getPhysicianNameByID(appointment[2])
+    return render_template('appointment.html', appointments=user_appointments)
 
 @app.route('/createAppointment')
 def showScheduleAppointment():
@@ -303,49 +313,62 @@ def createAppointment():
 
     if len(data) == 0:
         conn.commit()
-        cursor.callproc('sp_getAppointments', (session['user'],))
-        appointments = cursor.fetchall()
-        formatted = []
-        for appointment in appointments:
-            individual = []
-            individual.append(appointment[0]) # Date)
-            individual.append(appointment[1]) # Physician ID (This should display the physician name)
-            individual.append(appointment[2]) # Description
-            formatted.append(individual)
-        return render_template('appointment.html', appointments=formatted)
+        new_appointments = getAppointments()
+        return render_template('appointment.html', appointments=new_appointments)
     else:
         return json.dumps({'error': str(data[0])})
+    
+@app.route('/api/saveAppointment', methods=['POST'])
+def saveAppointment():
+    _date = request.form['inputDate'] + " " + request.form['inputTime']
+    _physician = getPhysiciansByIdUsingName(request.form["physician"])
+    _patient = session['user']
+    _reason = request.form['inputReason']
+    _appointmentID = request.form['inputID']
 
-@app.route('/api/changeAppointment', methods=['POST'])
-def changeAppointment():
-    _appointmentID = request.form['inputAppointmentID']
     conn = mysql.connect()
     cursor = conn.cursor()
-    cursor.callproc('sp_deleteAppointment', (_appointmentID,))
+    cursor.callproc('sp_modifyAppointment', (_appointmentID, _date, _physician, _reason))
     data = cursor.fetchall()
 
     if len(data) == 0:
-        return render_template('appointment.html')
+        conn.commit()
+        new_appointments = getAppointments()
+        return render_template('appointment.html', appointments=new_appointments)
     else:
         return json.dumps({'error': str(data[0])})
 
+@app.route('/api/modifyAppointment', methods=['GET','POST'])
+def modifyAppointment():
+    appointments = getAppointments()
+    phys = getPhysiciansByNameAndId().keys()
+    _appointmentID = int(request.args.get('appointment_id'))
+    unselected = []
+    selected = None
+    for appointment in appointments:
+        if appointment[0] == _appointmentID:
+            selected = appointment
+        else:
+            unselected.append(appointment)
+    date = selected[1]
+    time = date.time()
+    date = date.strftime("%Y-%m-%d")
+    selected = [selected[0], date, time, selected[2], selected[3]]
+    appointments = [appointment for appointment in appointments if appointment[0] != _appointmentID]
+    selected_phys = getPhysicianNameByID(selected[3])
+    # Need to get the selected physicians name based on ID
+    return render_template('modifyAppointment.html', appointments=unselected, p_names=phys, selected=selected, selected_phys=selected_phys)
+
 @app.route('/api/deleteAppointment', methods=['GET', 'POST'])
 def deleteAppointment():
-    _appointmentID = request.args.get('appointment_id')
+    _appointmentID = int(request.args.get('appointment_id'))
     conn = mysql.connect()
     cursor = conn.cursor()
     cursor.callproc('sp_deleteAppointment', (_appointmentID,))
     data = cursor.fetchall()
     if len(data) == 0:
         conn.commit()
-
-        cursor.callproc('sp_getAppointments', (session['user'],))
-        data = cursor.fetchall()
-        if len(data) > 0:
-            conn.commit()
-            return render_template('appointment.html', appointments=data)
-        else:
-            return json.dumps({'error': str(data[0])})
+        return redirect('/appointment')
     else:
         return json.dumps({'error': str(data[0])})
 
