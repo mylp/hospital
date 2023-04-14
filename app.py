@@ -212,6 +212,10 @@ def getAppointments():
         formatted.append(individual)
     return formatted
 
+@app.route('/billing')
+def showBilling():
+    return render_template('billing.html')
+
 @app.route('/appointment')
 def showAppointment():
     user_appointments = getAppointments()
