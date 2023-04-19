@@ -256,6 +256,17 @@ def showStatement():
 
 
 
+@app.route('/showStatement', methods=['GET','POST'])
+def showStatement():
+    statement_id = request.args.get(('statement_id'))
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_getInvoices', (statement_id,))
+    invoices = cursor.fetchall()
+    return render_template('statement.html', invoices=invoices)
+
+
+
 @app.route('/appointment')
 def showAppointment():
     user_appointments = getAppointments()
