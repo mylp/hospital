@@ -37,7 +37,7 @@
 
 		<div class="p-5 mb-4 bg-light rounded-3">
 			<div class="container-fluid py-5">
-				<h3 class="display-5 fw-bold text-center">Billing Statements</h3>
+				<h3 class="display-5 fw-bold text-center"></h3>
 				<style>
 					statement {
 						display: flex;
@@ -74,21 +74,23 @@
 					<table>
 						<thead>
 						<tr>
-							<th>Statement ID</th>
-							<th>Pay By</th>
-                            <th>Balance</th>
-                            <th></th>
+							<th>Date</th>
+							<th>Invoice ID</th>
+                            <th>Description</th>
+                            <th>Charge</th>
+                            <th>Insurance</th>
+                            <th>Total</th>
 						</tr>
 						</thead>
 						<tbody>
-                            {% for statement in paid %}
+                            {% for invoice in invoices %}
                             <tr>
-                                <td>{{ statement[0] }}</td>
-                                <td>{{ statement[3] }}</td>
-                                <td>{{ statement[2] }}</td>
-                                <td>
-                                    <a href="{{ url_for('showStatement', statement_id=statement[0]) }}">View/Pay</a>
-                                </td>
+                                <td>{{ invoice[2] }}</td>
+                                <td>{{ invoice[0] }}</td>
+                                <td>{{ invoice[6] }}</td>
+                                <td>{{ invoice[3] }}</td>
+                                <td>{{ invoice[4] }}</td>
+                                <td>{{ invoice[5] }}</td>
                             </tr>
                             {% endfor %}
 						</tbody>
