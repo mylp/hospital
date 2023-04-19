@@ -107,7 +107,7 @@ CREATE TABLE IF NOT EXISTS `test`.`invoice` (
   `description` MEDIUMTEXT NOT NULL,
   PRIMARY KEY (`idinvoice`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 2
+AUTO_INCREMENT = 3
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -201,7 +201,7 @@ CREATE TABLE IF NOT EXISTS `test`.`statement` (
   `paid` TINYINT NOT NULL,
   PRIMARY KEY (`idstatement`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 3
+AUTO_INCREMENT = 4
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -644,6 +644,20 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
+-- procedure sp_getInvoices
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getInvoices`(IN statement INT)
+BEGIN
+	SELECT * FROM invoice
+    WHERE idstatement = statement;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
 -- procedure sp_getPhysicianAppointments
 -- -----------------------------------------------------
 
@@ -707,6 +721,22 @@ USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getPhysiciansByNameAndId`()
 BEGIN
 SELECT a.first_name, a.last_name, b.idphysician FROM test.user a JOIN test.physician b where a.iduser = b.idphysician;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_getStatements
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getStatements`(
+	IN patientid INT
+)
+BEGIN
+	SELECT * FROM statement
+    WHERE idpatient = patientid;
 END$$
 
 DELIMITER ;
