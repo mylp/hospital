@@ -1,6 +1,14 @@
 from flask import Flask, render_template, request, json, session, redirect
 from werkzeug.security import generate_password_hash, check_password_hash
 from flaskext.mysql import MySQL
+import datetime
+import smtplib
+import ssl
+
+import os
+import smtplib
+import imghdr
+from email.message import EmailMessage
 
 app = Flask(__name__)
 
@@ -250,11 +258,19 @@ def createAdmin():
 
 @app.route('/physicianHome')
 def physicianHome():
-    return render_template('physicianHome.html')
+    
+    return render_template('PhysicianHome.html')
 
 @app.route('/account')
 def account():
-    return render_template('account.html')
+    userHeadings=("First Name", "Last Name","Street", "City", "State", "Zip", "Phone Number", "DOB", "Sex", "Email")
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    id = session['user']
+    cursor.callproc('sp_getUser', (id,))
+    data = cursor.fetchall()
+    return render_template('account.html', headings=userHeadings,data=data[0][3:-1])
+    
 
 
 @app.route('/api/changePassword', methods=['POST'])
@@ -377,15 +393,11 @@ def validateLogin():
     else:
         return render_template('error.html', error='Wrong Email address or Password')
 
-userHeadings=("First Name", "Last Name","Street", "City", "State", "Zip", "Phone Number", "DOB", "Sex", "Email")
+
 @app.route('/userHome')
 def userHome():
-    conn = mysql.connect()
-    cursor = conn.cursor()
-    id = session['user']
-    cursor.callproc('sp_getUser', (id,))
-    data = cursor.fetchall()
-    return render_template('userhome.html', headings=userHeadings,data=data[0][3:-1])
+    
+    return render_template('userHome.html')
 
 appointmentHeadings=("Appointment Date", "Description","Physician First Name", "Physician last Name")
 @app.route('/seeOwnAppointment')
@@ -595,12 +607,13 @@ def adddeleteBed():
 def assignBed():
     idbed= request.form['idBed']
     idpatient=request.form['idpatient']
-
-    if all( (idbed,idpatient)):
+    id=session['user']
+    
+    if all( (idbed,idpatient,id)):
 
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.callproc('sp_assignBed', (idbed,idpatient))
+        cursor.callproc('sp_assignBed', (idbed,idpatient,id))
         data = cursor.fetchall()
 
         if len(data) == 0:
@@ -611,6 +624,71 @@ def assignBed():
     else:
         return json.dumps({'html': '<span>Enter the required fields</span>'})
 
+@app.route('/api/assignBedAdmin', methods=['POST'])
+def assignBedAdmin():
+    idbed= request.form['idBed']
+    idpatient=request.form['idPatient']
+
+    if all( (idbed,idpatient)):
+
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.callproc('sp_assignBed', (idbed,idpatient))
+        data = cursor.fetchall()
+
+        if len(data) == 0:
+            conn.commit()
+            return redirect('/ManageBeds')
+        else:
+            return json.dumps({'error': str(data[0])})
+    else:
+        return json.dumps({'html': '<span>Enter the required fields</span>'})
+
+@app.route('/api/modifyBedLocation', methods=['POST'])
+def modifyBedLocation():
+    idbed= request.form['idBed']
+    idroom=request.form['idroom']
+
+    if all( (idbed,idroom)):
+
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.callproc('sp_modifyBedLocation', (idbed,idroom))
+        data = cursor.fetchall()
+
+        if len(data) == 0:
+            conn.commit()
+            return redirect('/ManageBeds')
+        else:
+            return json.dumps({'error': str(data[0])})
+    else:
+        return json.dumps({'html': '<span>Enter the required fields</span>'})
+
+    
+    
+@app.route('/api/billNotification', methods=['POST'])
+def billNotification():
+    idpatient=request.form['idpatient']
+    idPhys=session['user']
+
+    if all( (idpatient,idPhys)):
+
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.callproc('sp_getPatientEmail', (idpatient,idPhys))
+        data = cursor.fetchall()
+        print(data[0][0]);
+        patientEmail=data[0][0];
+        print(type(data[0][0]))
+        
+        msgAlert(patientEmail);
+        if len(data) == 0:
+            conn.commit()
+            return redirect('/physicianHome')
+        else:
+            return json.dumps({'error': str(data[0])})
+    else:
+        return json.dumps({'html': '<span>Enter the required fields</span>'})
 
 # for testing purposes only
 ###############################
@@ -634,8 +712,53 @@ def deleteSchedule(pid):
     cursor.callproc('sp_deleteSchedule', (pid,))
     conn.commit()
 ###############################
+def msgAlert(email_to):
+        """Send the text to the email address associated with the entered number."""
+        
+        now =datetime.datetime.now()
+        timeStamp= now.strftime("%I:%M %p %m/%d/%y")
 
+        message="You have recieved an email from hospital "+timeStamp+"Check your homepage"
+        
+        email_from = "rupanti.engr@gmail.com"
+        pswd = "ooulipvpkpqhoysd"
+        
+        # Setup port number and servr name
 
+        smtp_port = 587                 # Standard secure SMTP port
+        smtp_server = "smtp.gmail.com"  # Google SMTP Server
+        
+        msg = EmailMessage()
+        msg['Subject'] = 'Notification from RM Hospital!'
+        msg['From'] = email_from
+        msg['To'] = email_to
+
+        # Create context
+        simple_email_context = ssl.create_default_context()
+        msg.set_content(message)
+
+        try:
+            # Connect to the server
+            print("Connecting to server...")
+            TIE_server = smtplib.SMTP(smtp_server, smtp_port)
+            TIE_server.starttls(context=simple_email_context)
+            TIE_server.login(email_from, pswd)
+            print("Connected to server :-)")
+            
+            # Send the actual email
+            print(message)
+            print(f"Sending email to - {email_to}")
+            TIE_server.send_message(msg)
+            print(f"Email successfully sent to - {email_to}")
+
+        # If there's an error, print it out
+        except Exception as e:
+            print(e)
+
+        # Close the port
+        finally:
+            TIE_server.quit()
 if __name__ == '__main__':
     connect_to_db(app)
+    
     app.run(debug=True)

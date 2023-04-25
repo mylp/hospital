@@ -512,9 +512,23 @@ DELIMITER ;
 
 DELIMITER $$
 USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_assignBed`(In p_idbed INT, IN p_idpatient INT)
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_assignBed`(In p_idbed INT, IN p_idpatient INT,IN p_idphysician INT)
 BEGIN
-   UPDATE bed SET `idpatient`=p_idpatient WHERE idbed = p_idbed;
+      UPDATE bed SET `idpatient`=p_idpatient WHERE idbed = p_idbed AND EXISTS (select idpatient,idphysician from appointment where p_idpatient=idpatient AND p_idphysician=idphysician);
+    
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_modifyBedLocation
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_modifyBedLocation`(In p_idbed INT,  IN p_room_number VARCHAR(45))
+BEGIN
+   UPDATE bed SET `room_number`=p_room_number WHERE idbed = p_idbed;
     
 END$$
 
@@ -527,7 +541,7 @@ DELIMITER $$
 USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getUser`(IN p_userid INT)
 BEGIN
-SELECT username,first_name,last_name,email from user where iduser=p_userid;
+SELECT first_name,last_name,street, city, state,zip,phone,date_of_birth ,sex, email from user where iduser=p_userid;
 END$$
 
 DELIMITER ;
@@ -627,6 +641,20 @@ END$$
 
 DELIMITER ;
 
+-- -----------------------------------------------------
+-- procedure sp_getPatientEmail
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getPatientEmail`(IN p_idpatient INT, IN p_idphysician INT)
+BEGIN
+    SELECT email FROM `user` WHERE `user`.iduser = p_idpatient AND
+    EXISTS (select idpatient,idphysician from appointment where p_idpatient=idpatient 
+        AND p_idphysician=idphysician);
+END$$
+
+DELIMITER ;
 
 
 -- -----------------------------------------------------
