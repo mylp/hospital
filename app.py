@@ -718,7 +718,7 @@ def msgAlert(email_to):
         now =datetime.datetime.now()
         timeStamp= now.strftime("%I:%M %p %m/%d/%y")
 
-        message="You have recieved an email from hospital "+timeStamp+"Check your homepage"
+        message="You have recieved an email from R.A.M hospital "+timeStamp+" Check your homepage"
         
         email_from = "rupanti.engr@gmail.com"
         pswd = "ooulipvpkpqhoysd"
@@ -729,7 +729,7 @@ def msgAlert(email_to):
         smtp_server = "smtp.gmail.com"  # Google SMTP Server
         
         msg = EmailMessage()
-        msg['Subject'] = 'Notification from RM Hospital!'
+        msg['Subject'] = 'Notification from R.A.M Hospital!'
         msg['From'] = email_from
         msg['To'] = email_to
 
