@@ -386,6 +386,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createInvoice`(
     IN invoice_date DATE,
     IN charge INT,
     IN insurance INT,
+    IN total INT,
     IN `description` MEDIUMTEXT
 )
 BEGIN
