@@ -41,22 +41,59 @@
 				<form id="form-schedule" action="/api/setHours" method="POST" >
 							  <label for="physician" >Choose a Physician:</label>
 									<select name="physician" id="physician" required autofocus>
-										<option value="choose"> -- select a physician -- </option>
+										<option value="{{physician}}">{{physician}}</option>
 										{% for n in p_names %}
 									  	<option value="{{n}}">{{n}}</option>
 										{% endfor %}
 									</select>
 						<fieldset>
 						<legend>Select days for availability:</legend>
-						{% for day in days %}
-						<input type="checkbox" name={{day}} value="1" id={{day}} onclick="displayHours()">{{day}}
-						<input type="hidden" name={{day}} value="0" id={{day}}H><br>
-						<div id={{day}}Instruction style="display: none">
-							<p>Enter availability for {{day}}.</p>
+						<br>
+							{% for error in errors %}
+							<p style="color: red;">{{error}}</p>
+							{% endfor %}
+							<br>
+						<div id=Monday>
+							<p>Enter availability for Monday.</p>
 							<p>Ex: 02:00 PM-03:00 PM, 01:00 AM-12:00 PM</p>
-							<input type="text" name={{day}}Times id={{day}}Times pattern="[0|1]\d:[012345]\d\s((PM)|(AM))-[0|1]\d:[012345]\d\s(P|A)M(,\s[0|1]\d:[012345]\d\s(P|A)M-[0|1]\d:[012345]\d\s(P|A)M)*">
+							<input type="text" name=MondayTimes id=MondayTimes value={{mon}}>
 						</div>
-						{% endfor %}
+							<br>
+						<div id=Tuesday>
+							<p>Enter availability for Tuesday.</p>
+							<p>Ex: 02:00 PM-03:00 PM, 01:00 AM-12:00 PM</p>
+							<input type="text" name=TuesdayTimes id=TuesdayTimes value={{tue}}>
+						</div>
+							<br>
+						<div id=Wednesday>
+							<p>Enter availability for Wednesday.</p>
+							<p>Ex: 02:00 PM-03:00 PM, 01:00 AM-12:00 PM</p>
+							<input type="text" name=WednesdayTimes id=WednesdayTimes value={{wed}}>
+						</div>
+							<br>
+						<div id=Thursday>
+							<p>Enter availability for Thursday.</p>
+							<p>Ex: 02:00 PM-03:00 PM, 01:00 AM-12:00 PM</p>
+							<input type="text" name=ThursdayTimes id=ThursdayTimes value={{thurs}}>
+						</div>
+							<br>
+						<div id=Friday>
+							<p>Enter availability for Friday.</p>
+							<p>Ex: 02:00 PM-03:00 PM, 01:00 AM-12:00 PM</p>
+							<input type="text" name=FridayTimes id=FridayTimes value={{fri}}>
+						</div>
+							<br>
+						<div id=Saturday>
+							<p>Enter availability for Saturday.</p>
+							<p>Ex: 02:00 PM-03:00 PM, 01:00 AM-12:00 PM</p>
+							<input type="text" name=SaturdayTimes id=SaturdayTimes value={{sat}}>
+						</div>
+							<br>
+						<div id=Sunday>
+							<p>Enter availability for Sunday.</p>
+							<p>Ex: 02:00 PM-03:00 PM, 01:00 AM-12:00 PM</p>
+							<input type="text" name=SundayTimes id=SundayTimes value={{sun}}>
+						</div>
 						<br>
                         <input id='submit' type="submit" value="Submit" onclick="return checkValue()" />
                     </fieldset>
@@ -90,23 +127,7 @@
 
 </body>
 
-	{% for day in days%}
-	<script>
-		document.getElementById('{{day}}').addEventListener("change", displayHours);
-		function displayHours() {
-			document.getElementById('{{day}}Instruction').style.display = (document.getElementById('{{day}}')).checked ? "block" : "none";
-		}
-		var form = document.getElementById('form-schedule');
 
-		form.addEventListener('submit', temp());
-		function temp() {
-				if(document.getElementById('{{day}}').checked) {
-				document.getElementById('{{day}}H').disabled = true;
-				}
-
-		};
-	</script>
-	{% endfor %}
 
 <script>
 	function checkValue() {

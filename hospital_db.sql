@@ -140,13 +140,6 @@ COLLATE = utf8mb4_0900_ai_ci;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `test`.`schedule` (
   `idphysician` INT NOT NULL,
-  `monday` BIT(1) NULL DEFAULT NULL,
-  `tuesday` BIT(1) NULL DEFAULT NULL,
-  `wednesday` BIT(1) NULL DEFAULT NULL,
-  `thursday` BIT(1) NULL DEFAULT NULL,
-  `friday` BIT(1) NULL DEFAULT NULL,
-  `saturday` BIT(1) NULL DEFAULT NULL,
-  `sunday` BIT(1) NULL DEFAULT NULL,
   `monTL` VARCHAR(100) NULL DEFAULT NULL,
   `tueTL` VARCHAR(100) NULL DEFAULT NULL,
   `wedTL` VARCHAR(100) NULL DEFAULT NULL,
@@ -578,13 +571,6 @@ DELIMITER $$
 USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_setHours`(
 	IN `p_idphysician` INT,
-    IN  `p_monday` BIT,
-    IN  `p_tuesday` BIT,
-    IN  `p_wednesday` BIT,
-    IN  `p_thursday` BIT,
-    IN  `p_friday` BIT,
-    IN  `p_saturday` BIT,
-    IN  `p_sunday` BIT,
     IN  `p_monTL` VARCHAR(100),
     IN  `p_tueTL` VARCHAR(100),
     IN  `p_wedTL` VARCHAR(100),
@@ -596,15 +582,12 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_setHours`(
 
 )
 BEGIN
-    if (select exists (select 1 from schedule where idphysician = p_idphysician) ) then
-        update schedule set monday = p_monday and tuesday = p_tuesday and wednesday = p_wednesday
-         and thursday = p_thursday and friday = p_friday and saturday = p_saturday and
-          sunday = p_sunday and monTL = p_monTL and tueTL = p_tueTL and
-           wedTL = p_wedTL and thursTL = p_thursTL and friTL = p_friTL and satTL = p_satTL
-            and sunTL = p_sunTL where idphysician = p_idphysician;
+    if (select exists (select 1 from schedule where idphysician = p_idphysician))  then
+        update schedule set monTL = p_monTL, tueTL = p_tueTL,
+           wedTL = p_wedTL, thursTL = p_thursTL, friTL = p_friTL, satTL = p_satTL, sunTL = p_sunTL where idphysician = p_idphysician;
     else
-        insert into schedule (idphysician, monday, tuesday, wednesday, thursday, friday, saturday, sunday, monTL, tueTL, wedTL, thursTL, friTL, satTL, sunTL)
-        values (p_idphysician, p_monday, p_tuesday, p_wednesday, p_thursday, p_friday, p_saturday, p_sunday, p_monTL, p_tueTL, p_wedTL, p_thursTL, p_friTL, p_satTL, p_sunTL);
+        insert into schedule (idphysician, monTL, tueTL, wedTL, thursTL, friTL, satTL, sunTL)
+        values (p_idphysician, p_monTL, p_tueTL, p_wedTL, p_thursTL, p_friTL, p_satTL, p_sunTL);
     end if;
 
 END$$
