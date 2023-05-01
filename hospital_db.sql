@@ -50,6 +50,19 @@ AUTO_INCREMENT = 4
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
+-- -----------------------------------------------------
+-- Table `test`.`appointment`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `test`.`afterVisit` (
+ `id` INT NOT NULL AUTO_INCREMENT,
+  `idappointment` INT NOT NULL ,
+  `summary` MEDIUMTEXT NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `id` (`id` ASC) VISIBLE)
+ENGINE = InnoDB
+AUTO_INCREMENT = 4
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
 -- -----------------------------------------------------
 -- Table `test`.`bed`
@@ -221,6 +234,20 @@ BEGIN
     (first_name, last_name, email, message)
     VALUES
     (first_name, last_name, email, message);
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_addSummary
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addSummary`(p_idappointment INT,p_summary MEDIUMTEXT)
+BEGIN
+insert into bed(idappointment,summary )
+values(p_idappointment, p_summary);
 END$$
 
 DELIMITER ;
@@ -520,6 +547,38 @@ END$$
 
 DELIMITER ;
 
+-- -----------------------------------------------------
+-- procedure sp_removePatientFromBed
+-- -----------------------------------------------------
+
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_removePatientFromBed`(IN patient_id INT, IN physician_id INT)
+BEGIN
+    DECLARE patient_exists INT DEFAULT 0;
+    DECLARE appointment_exists INT DEFAULT 0;
+    
+    -- check if patient exists in beds table
+    SELECT COUNT(*) INTO patient_exists FROM bed WHERE idpatient = patient_id;
+    
+    IF patient_exists > 0 THEN
+        -- check if patient exists in appointments table for the given physician
+        SELECT COUNT(*) INTO appointment_exists FROM appointment WHERE idpatient = patient_id AND idphysician = physician_id;
+        
+        IF appointment_exists > 0 THEN
+            -- update idbed to 0 for the given patient
+            UPDATE bed SET idpatient = 0 WHERE idpatient = patient_id;
+            SELECT CONCAT('Bed updated for patient with id ', patient_id) AS message;
+        ELSE
+            SELECT CONCAT('Patient with id ', patient_id, ' does not have an appointment with physician with id ', physician_id) AS message;
+        END IF;
+    ELSE
+        SELECT CONCAT('Patient with id ', patient_id, ' does not exist in beds table.') AS message;
+    END IF;
+END;$$
+
+DELIMITER ;
 -- -----------------------------------------------------
 -- procedure sp_modifyBedLocation
 -- -----------------------------------------------------

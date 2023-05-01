@@ -624,6 +624,29 @@ def assignBed():
     else:
         return json.dumps({'html': '<span>Enter the required fields</span>'})
 
+@app.route('/api/dischargePatient', methods=['POST'])
+def dischargePatient():
+    
+    idpatient=request.form['idpatient']
+    id=session['user']
+    
+    if all( (idpatient,id)):
+
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.callproc('sp_removePatientFromBed', (idpatient,id))
+        data = cursor.fetchall()
+
+        if len(data) == 0:
+            conn.commit()
+            return redirect('/physicianHome')
+        else:
+            return json.dumps({'error': str(data[0])})
+    else:
+        return json.dumps({'html': '<span>Enter the required fields</span>'})
+
+
+
 @app.route('/api/assignBedAdmin', methods=['POST'])
 def assignBedAdmin():
     idbed= request.form['idBed']
