@@ -1,3 +1,5 @@
+import re
+
 from flask import Flask, render_template, request, json, session, redirect
 from werkzeug.security import generate_password_hash, check_password_hash
 from flaskext.mysql import MySQL
@@ -5,6 +7,7 @@ from flaskext.mysql import MySQL
 app = Flask(__name__)
 
 mysql = MySQL()
+
 
 def connect_to_db(app):
     app.config['MYSQL_DATABASE_USER'] = 'root'
@@ -66,11 +69,11 @@ def getCUMessages():
 
 
 @app.route('/setHours')
-def showSetHours():
+def showSetHours(errors=[], mon='', tue='', wed='', thurs='', fri='', sat='', sun='', physician='choose'):
     days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     p_names = getPhysiciansByNameAndId().keys()
     schedules = getPhysicianSchedules()
-    return render_template('setHours.html', days=days, p_names=p_names, schedules=schedules)
+    return render_template('setHours.html', days=days, p_names=p_names, schedules=schedules, errors=errors, mon=mon, tue=tue, wed=wed, thurs=thurs, fri=fri, sat=sat, sun=sun, physician=physician)
 
 
 @app.route('/ownSchedule')
@@ -83,50 +86,37 @@ def ownSchedule():
 
 @app.route('/api/setHours', methods=['POST'])
 def setHours():
-    _mon = request.form['Monday']
-    _tue = request.form['Tuesday']
-    _wed = request.form['Wednesday']
-    _thurs = request.form['Thursday']
-    _fri = request.form['Friday']
-    _sat = request.form['Saturday']
-    _sun = request.form['Sunday']
-    _pid = getPhysiciansByIdUsingName(request.form["physician"])
-    _monTL = ''
-    _tueTL = ''
-    _wedTL = ''
-    _thursTL = ''
-    _friTL = ''
-    _satTL = ''
-    _sunTL = ''
+    errors = []
+    days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    times = [request.form["MondayTimes"], request.form["TuesdayTimes"], request.form["WednesdayTimes"],
+             request.form["ThursdayTimes"], request.form["FridayTimes"], request.form["SaturdayTimes"],
+             request.form["SundayTimes"]]
+    for i in range(7):
+        if times[i] != '':
+            if not bool(re.match(
+                    r"[0|1]\d:[012345]\d\s((PM)|(AM))-[0|1]\d:[012345]\d\s(P|A)M(,\s[0|1]\d:[012345]\d\s(P|A)M-[0|1]\d:[012345]\d\s(P|A)M)*",
+                    times[i])):
+                errors.append("Time format is incorrect for " + days[i])
 
-    if request.form["MondayTimes"] is not None and _mon == "1":
-        _monTL = request.form["MondayTimes"]
-    if request.form["TuesdayTimes"] is not None and _tue == "1":
-        _tueTL = request.form["TuesdayTimes"]
-    if request.form["WednesdayTimes"] is not None and _wed == "1":
-        _wedTL = request.form["WednesdayTimes"]
-    if request.form["ThursdayTimes"] is not None and _thurs == "1":
-        _thursTL = request.form["ThursdayTimes"]
-    if request.form["FridayTimes"] is not None and _fri == "1":
-        _friTL = request.form["FridayTimes"]
-    if request.form["SaturdayTimes"] is not None and _sat == "1":
-        _satTL = request.form["SaturdayTimes"]
-    if request.form["SundayTimes"] is not None and _sun == "1":
-        _sunTL = request.form["SundayTimes"]
-
-    conn = mysql.connect()
-    cursor = conn.cursor()
-    cursor.callproc('sp_setHours',
-                    (
-                        _pid, int(_mon), int(_tue), int(_wed), int(_thurs), int(_fri), int(_sat), int(_sun), _monTL,
-                        _tueTL, _wedTL, _thursTL, _friTL, _satTL, _sunTL))
-    data = cursor.fetchall()
-    if len(data) == 0:
-        conn.commit()
-        json.dumps({'message': 'Hours add successfully!'})
-        return redirect('/setHours')
+    if len(errors) != 0 or request.form["physician"] == 'choose':
+        return showSetHours(errors, times[0], times[1], times[2], times[3], times[4], times[5], times[6], request.form["physician"])
     else:
-        return json.dumps({'error': str(data[0])})
+
+        _pid = getPhysiciansByIdUsingName(request.form["physician"])
+
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.callproc('sp_setHours',
+                        (
+                            int(_pid), times[0],
+                            times[1], times[2], times[3], times[4], times[5], times[6]))
+        data = cursor.fetchall()
+        if len(data) == 0:
+            conn.commit()
+            json.dumps({'message': 'Hours add successfully!'})
+            return redirect('/setHours')
+        else:
+            return json.dumps({'error': str(data[0])})
 
 
 def getPhysiciansByNameAndId():
@@ -164,7 +154,7 @@ def getPhysicianSchedules():
         individual = []
         name = [k for k, v in getPhysiciansByNameAndId().items() if v == tup[0]][0]
         individual.append(name)
-        for time in tup[8:]:
+        for time in tup[1:]:
             individual.append(time)
         formatted.append(individual)
 
