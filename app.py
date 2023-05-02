@@ -629,12 +629,13 @@ def dischargePatient():
     
     idpatient=request.form['idpatient']
     id=session['user']
+    summ=request.form['idsummary']
     
     if all( (idpatient,id)):
 
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.callproc('sp_removePatientFromBed', (idpatient,id))
+        cursor.callproc('sp_dischargePatient', (idpatient,id,summ))
         data = cursor.fetchall()
 
         if len(data) == 0:

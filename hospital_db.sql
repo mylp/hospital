@@ -548,16 +548,19 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
--- procedure sp_removePatientFromBed
+-- procedure sp_dischargePatient
 -- -----------------------------------------------------
 
 
 DELIMITER $$
 USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_removePatientFromBed`(IN patient_id INT, IN physician_id INT)
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_dischargePatient`(IN patient_id INT, IN physician_id INT,IN p_summary MEDIUMTEXT)
 BEGIN
     DECLARE patient_exists INT DEFAULT 0;
     DECLARE appointment_exists INT DEFAULT 0;
+    DECLARE appointment_id INT DEFAULT 0;
+    
+	
     
     -- check if patient exists in beds table
     SELECT COUNT(*) INTO patient_exists FROM bed WHERE idpatient = patient_id;
@@ -569,6 +572,8 @@ BEGIN
         IF appointment_exists > 0 THEN
             -- update idbed to 0 for the given patient
             UPDATE bed SET idpatient = 0 WHERE idpatient = patient_id;
+            select idappointment into appointment_id from appointment where idpatient=patient_id AND idphysician=physician_id;
+            insert into afterVisit(idappointment,summary ) values(appointment_id, p_summary);
             SELECT CONCAT('Bed updated for patient with id ', patient_id) AS message;
         ELSE
             SELECT CONCAT('Patient with id ', patient_id, ' does not have an appointment with physician with id ', physician_id) AS message;
@@ -576,7 +581,7 @@ BEGIN
     ELSE
         SELECT CONCAT('Patient with id ', patient_id, ' does not exist in beds table.') AS message;
     END IF;
-END;$$
+END$$
 
 DELIMITER ;
 -- -----------------------------------------------------
