@@ -224,9 +224,10 @@ CREATE TABLE IF NOT EXISTS `test`.`user` (
   `sex` VARCHAR(45) NOT NULL,
   `email` VARCHAR(45) NOT NULL,
   `type` VARCHAR(45) NOT NULL,
+  `insurance` VARCHAR(45) NULL DEFAULT NULL,
   PRIMARY KEY (`iduser`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 21
+AUTO_INCREMENT = 22
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -295,6 +296,21 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_assignBed`(In p_idbed INT, IN p_
 BEGIN
    UPDATE bed SET `idpatient`=p_idpatient WHERE idbed = p_idbed;
     
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_changeInsurance
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_changeInsurance`(IN userID INT, IN insurance_type VARCHAR(45))
+BEGIN
+	UPDATE `user`
+    SET insurance = insurance_type
+    WHERE iduser = userID;
 END$$
 
 DELIMITER ;
