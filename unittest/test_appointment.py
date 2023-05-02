@@ -12,7 +12,16 @@ class TestAppointment(unittest.TestCase):
         connect_to_db(app)
 
     def test_create_appointment(self):
-        pass
+        create_appointment('2022-02-02', 'physician', 'patient', 'test')
+        response = self.client.post('/appointment', data=dict(
+            date='2022-02-02',
+            physician='physician',
+            patient='patient',
+            reason='test'
+        ))
+        self.assertEqual('/appointment', response.location)
+        self.assertEqual(response.status_code, 302)
+        #delete_appointment()
 
     def test_save_appointment(self):
         pass
