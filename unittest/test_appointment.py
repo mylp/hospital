@@ -1,26 +1,26 @@
 import unittest
 import os
 import sys
-from flask import url_for
-from flask_testing import TestCase
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from app import app
+from app import app, connect_to_db, create_appointment, save_appointment, modify_appointment, delete_appointment
 
+class TestAppointment(unittest.TestCase):
 
+    def setUpClass(cls):
+        cls.client = app.test_client()
+        connect_to_db(app)
 
-class TestAppointment(TestCase):
-
-    def create_app(self):
-        return app
-
-    def test_appointment_create(self):
+    def test_create_appointment(self):
         pass
 
-    def test_appointment_modify(self):
+    def test_save_appointment(self):
         pass
 
-    def test_appointment_delete(self):
+    def test_modify_appointment(self):
+        pass
+
+    def test_delete_appointment(self):
         pass
 
 

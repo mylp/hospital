@@ -655,6 +655,32 @@ def deleteSchedule(pid):
     cursor = conn.cursor()
     cursor.callproc('sp_deleteSchedule', (pid,))
     conn.commit()
+
+def create_appointment(date, pid, uid, reason):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_createAppointment', (date, pid, uid, reason))
+    conn.commit()
+
+def save_appointment(aid, date, pid, uid, reason):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_saveAppointment', (aid, date, pid, uid, reason))
+    conn.commit()
+
+def modify_appointment(aid, date, pid, uid, reason):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_modifyAppointment', (aid, date, pid, uid, reason))
+    conn.commit()
+
+def delete_appointment(aid):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_deleteAppointment', (aid,))
+    conn.commit()
+
+
 ###############################
 
 
