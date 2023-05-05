@@ -1,0 +1,27 @@
+.column {
+  float: left;
+  padding-bottom: 10px;
+}
+
+.left {
+    width: 50%;
+}
+
+.right {
+    width: 50%;
+
+}
+
+statement {
+	display: flex;
+	justify-content: center;
+    align-items: center;
+	}
+	table.bill {
+                            width: 100%;
+                            border: 1px solid #ddd;
+                            font-size: 18px;
+                        }
+                        th, td {
+                            padding: 16px;
+                        }

@@ -9,7 +9,7 @@ mysql = MySQL()
 
 def connect_to_db(app):
     app.config['MYSQL_DATABASE_USER'] = 'root'
-    app.config['MYSQL_DATABASE_PASSWORD'] = 'PepeSilvia1259#12!'
+    app.config['MYSQL_DATABASE_PASSWORD'] = 'Gooster1225!2'
     app.config['MYSQL_DATABASE_DB'] = 'test'
     app.config['MYSQL_DATABASE_HOST'] = 'localhost'
     app.config['SECRET_KEY'] = '1234567890'
@@ -246,26 +246,52 @@ def showBilling():
 
 
 @app.route('/showStatement', methods=['GET','POST'])
-def showStatement():
-    statement_id = request.args.get(('statement_id'))
+def showStatement(errors=[], payment=0, statementid='', success=''):
+    if statementid == '':
+        statementid = request.args.get(('statement_id'))
     conn = mysql.connect()
     cursor = conn.cursor()
-    cursor.callproc('sp_getInvoices', (statement_id,))
+    cursor.callproc('sp_getInvoices', (statementid,))
     invoices = cursor.fetchall()
-    return render_template('statement.html', invoices=invoices)
+    outstanding_balance = None
+    statements = getStatements()
+    cursor.callproc('sp_paymentHistory', (session["user"], statementid,))
+    history = cursor.fetchall()[::-1]
+    for s in statements:
+        if str(s[0]) == str(statementid):
+            outstanding_balance = s[2]
+    return render_template('statement.html', invoices=invoices, outBal=outstanding_balance, id=statementid, history=history, errors=errors, payment=payment, success=success)
 
+@app.route('/makePayment', methods=["POST"])
+def makePayment():
+    statements = getStatements()
+    statement_id = request.form["statementID"]
+    statement_balance = None
+    for s in statements:
+        if str(s[0]) == str(statement_id):
+            statement_balance = s[2]
+    errors = []
+    payment = request.form["amount"]
+    try:
+        payment = int(payment)
+    except:
+        return showStatement(["Payment not in correct format"], payment, statement_id)
 
+    if type(payment) != int:
+        payment = 0
+    if payment <= 0:
+        errors.append("Please input a payment amount greater than 0.")
+    elif payment > statement_balance:
+        errors.append("You cannot pay more than your outstanding balance.")
 
-@app.route('/showStatement', methods=['GET','POST'])
-def showStatement():
-    statement_id = request.args.get(('statement_id'))
-    conn = mysql.connect()
-    cursor = conn.cursor()
-    cursor.callproc('sp_getInvoices', (statement_id,))
-    invoices = cursor.fetchall()
-    return render_template('statement.html', invoices=invoices)
-
-
+    if errors:
+        return showStatement(errors, payment, statement_id)
+    else:
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.callproc('sp_updateStatementBalance', (str(session['user']), request.form["amount"], statement_id,))
+        conn.commit()
+        return showStatement(errors, 0, statement_id,'Payment recieved successfully!')
 
 @app.route('/appointment')
 def showAppointment():
@@ -284,6 +310,11 @@ def showScheduleAppointment():
 @app.route('/login')
 def showLogin():
     return render_template('login.html')
+
+
+@app.route('/loginBilling')
+def showLoginBilling():
+    return render_template('loginBilling.html')
 
 
 @app.route('/logout')
@@ -468,6 +499,26 @@ def validateLogin():
     else:
         return render_template('error.html', error='Wrong Email address or Password')
 
+@app.route('/api/validateLoginBilling', methods=['POST', 'GET'])
+def validateLoginBilling():
+    _username = request.form['inputUsername']
+    _password = request.form['inputPassword']
+
+    con = mysql.connect()
+    cursor = con.cursor()
+    cursor.callproc('sp_validateLogin', (_username,))
+    data = cursor.fetchall()
+
+    if len(data) > 0:
+        # definitely not safe security wise but need to be able to login in with original admin
+        if check_password_hash(str(data[0][2]), _password) or (_username == 'admin' and _password == 'admin'):
+            session['user'] = data[0][0]
+            if data[0][13] == "user":
+                return redirect('/billing')
+        else:
+            return render_template('error.html', error='Wrong Email address or Password')
+    else:
+        return render_template('error.html', error='Wrong Email address or Password')
 
 userHeadings = ("First Name", "Last Name", "Street", "City",
                 "State", "Zip", "Phone Number", "DOB", "Sex", "Email")
@@ -741,6 +792,49 @@ def deleteSchedule(pid):
     cursor = conn.cursor()
     cursor.callproc('sp_deleteSchedule', (pid,))
     conn.commit()
+
+def createStatement(patientID, balance, due_date):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_createStatement', (patientID, balance, due_date,))
+    conn.commit()
+
+def deleteStatement(statementID, patientID):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_deleteStatement', (statementID, patientID))
+    conn.commit()
+
+def createInvoice(statementID, date, charge, insurance, total, desc):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_createInvoice', (statementID, date, charge, insurance, total, desc,))
+    conn.commit()
+
+def deleteInvoice(statementid):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_getInvoices', (statementid,))
+    invoices = cursor.fetchall()
+    for inID, sid, date, charge, insurance, total, des in invoices:
+        cursor.callproc('sp_deleteInvoice', (inID,))
+        conn.commit()
+
+def getStatementId(patientID, date):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_getStatements', (patientID,))
+    statements = cursor.fetchall()
+    for sid, pid, balance, duedate, paid in statements:
+        if date == duedate:
+            return sid
+
+def deletePaymentHistory(statementID, userid):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_deletePaymentHistory', (userid,statementID,))
+    conn.commit()
+
 ###############################
 
 

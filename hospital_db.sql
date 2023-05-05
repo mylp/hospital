@@ -189,9 +189,9 @@ COLLATE = utf8mb4_0900_ai_ci;
 CREATE TABLE IF NOT EXISTS `test`.`statement` (
   `idstatement` INT NOT NULL AUTO_INCREMENT,
   `idpatient` VARCHAR(45) NOT NULL,
-  `balance_due` VARCHAR(45) NOT NULL,
-  `due_date` DATE NOT NULL,
-  `paid` TINYINT NOT NULL,
+  `balance_due` INT NOT NULL,
+  `due_date` VARCHAR(45) NOT NULL,
+  `paid` INT NOT NULL,
   PRIMARY KEY (`idstatement`))
 ENGINE = InnoDB
 AUTO_INCREMENT = 4
@@ -287,7 +287,7 @@ USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_assignBed`(In p_idbed INT, IN p_idpatient INT)
 BEGIN
    UPDATE bed SET `idpatient`=p_idpatient WHERE idbed = p_idbed;
-    
+
 END$$
 
 DELIMITER ;
@@ -386,7 +386,7 @@ BEGIN
 	INSERT INTO invoice
     (idstatement, `date`, charge, insurance, total, `description`)
     VALUES (statement, invoice_date, charge, insurance, charge-insurance, `description`);
-    
+
     UPDATE statement
     SET balance_due = balance_due + charge - insurance
     WHERE idstatement = statement;
@@ -394,6 +394,35 @@ END$$
 
 DELIMITER ;
 
+
+-- -----------------------------------------------------
+-- procedure sp_deleteInvoice
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_deleteInvoice`(IN inID INT)
+BEGIN
+	DELETE FROM invoice
+    WHERE idinvoice = inID;
+END$$
+
+DELIMITER ;
+
+
+
+-- -----------------------------------------------------
+-- procedure sp_getStatementByDescr
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getStatementByDescr`(IN d date)
+BEGIN
+	select idstatement from statement where date = d;
+END$$
+
+DELIMITER ;
 -- -----------------------------------------------------
 -- procedure sp_createNurse
 -- -----------------------------------------------------
@@ -411,7 +440,7 @@ BEGIN
 	if ( select exists (select 1 from `user` where username = p_username) ) THEN
 		select 'Username exists!!';
 	else
-		
+
         insert into `user`
         (
 			`username`,`password`,`first_name`,`last_name`,`street`,`city`,`state`,`zip`,`phone`,
@@ -453,7 +482,7 @@ BEGIN
 	if ( select exists (select 1 from `user` where username = p_username) ) THEN
 		select 'Username exists!!';
 	else
-		
+
         insert into `user`
         (
 			`username`,`password`,`first_name`,`last_name`,`street`,`city`,`state`,`zip`,`phone`,
@@ -486,7 +515,7 @@ USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createStatement`(
 	IN patientid INT,
     IN balance INT,
-    IN due DATE
+    IN due VARCHAR(45)
 )
 BEGIN
 	INSERT INTO statement
@@ -496,6 +525,19 @@ END$$
 
 DELIMITER ;
 
+-- -----------------------------------------------------
+-- procedure sp_deleteStatement
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_deleteStatement`(IN sID INT, IN pID VARCHAR(45))
+BEGIN
+	DELETE FROM statement
+    WHERE idstatement = sID and idpatient = pID;
+END$$
+
+DELIMITER ;
 -- -----------------------------------------------------
 -- procedure sp_createUser
 -- -----------------------------------------------------
@@ -590,7 +632,7 @@ DELIMITER $$
 USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_findOwnPatient`(
     IN p_physicianid INT
-    
+
 )
 BEGIN
 	SELECT idpatient from appointment where idphysician=p_physicianid;
@@ -735,6 +777,63 @@ END$$
 
 DELIMITER ;
 
+
+-- -----------------------------------------------------
+-- procedure sp_updateStatementBalance
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_updateStatementBalance`(
+	IN patientid VARCHAR(45), IN amount INT, IN statementid INT
+)
+BEGIN
+	update statement
+	set balance_due = (balance_due - amount), paid = (paid + amount)
+    WHERE idpatient = patientid and idstatement=statementid;
+END$$
+DELIMITER ;
+
+
+-- -----------------------------------------------------
+-- Table `test`.`paymentHistory`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `test`.`paymentHistory` (
+  `date` datetime not null,
+  `amount` INT NOT NULL,
+  `userID` varchar(45) NOT NULL,
+  `statementID` int not null,
+  PRIMARY KEY (`date`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+-- -----------------------------------------------------
+-- procedure sp_paymentHistory
+-- -----------------------------------------------------
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_paymentHistory`(IN p_userid INT, IN statementID INT)
+BEGIN
+SELECT * from paymentHistory where userID=p_userid and statementID=statementID;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_deletePaymentHistory
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_deletePaymentHistory`(IN p_userID VARCHAR(45), IN p_statementID INT )
+BEGIN
+	DELETE FROM paymentHistory
+    WHERE userID = p_userID and statementID = p_statementID;
+END$$
+
+DELIMITER ;
+
 -- -----------------------------------------------------
 -- procedure sp_getUser
 -- -----------------------------------------------------
@@ -814,6 +913,20 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+-- -----------------------------------------------------
+-- trigger to insert into paymenthistory
+-- -----------------------------------------------------
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER= root@localhost TRIGGER create_payment_history_on_balance_update
+AFTER UPDATE on statement
+FOR EACH ROW
+BEGIN
+INSERT INTO paymentHistory (date, amount, userID, statementID) VALUES (now(), (old.balance_due - new.balance_due), old.idpatient, old.idstatement);
+END $$
+DELIMITER ;
+
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
