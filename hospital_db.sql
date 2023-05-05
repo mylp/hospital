@@ -18,18 +18,14 @@ CREATE SCHEMA IF NOT EXISTS `test` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4
 USE `test` ;
 
 -- -----------------------------------------------------
--- Table `test`.`contact_us_messages`
+-- Table `test`.`admin`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `test`.`contact_us_messages` (
-  `messageID` INT NOT NULL AUTO_INCREMENT,
-  `first_name` VARCHAR(45) NOT NULL,
-  `last_name` VARCHAR(45) NOT NULL,
-  `email` VARCHAR(45) NOT NULL,
-  `message` MEDIUMTEXT NOT NULL,
-  PRIMARY KEY (`messageID`),
-  UNIQUE INDEX `messageID` (`messageID` ASC) VISIBLE)
+CREATE TABLE IF NOT EXISTS `test`.`admin` (
+  `idpadmin` INT NOT NULL,
+  `idDepartment` INT NOT NULL,
+  PRIMARY KEY (`idpadmin`),
+  UNIQUE INDEX `idpadmin` (`idpadmin` ASC) VISIBLE)
 ENGINE = InnoDB
-AUTO_INCREMENT = 4
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -46,7 +42,7 @@ CREATE TABLE IF NOT EXISTS `test`.`appointment` (
   PRIMARY KEY (`idappointment`),
   UNIQUE INDEX `idappointment` (`idappointment` ASC) VISIBLE)
 ENGINE = InnoDB
-AUTO_INCREMENT = 4
+AUTO_INCREMENT = 13
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -77,6 +73,41 @@ CREATE TABLE IF NOT EXISTS `test`.`clinic` (
   PRIMARY KEY (`idclinic`),
   UNIQUE INDEX `idclinic` (`idclinic` ASC) VISIBLE)
 ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table `test`.`contact_us_messages`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `test`.`contact_us_messages` (
+  `messageID` INT NOT NULL AUTO_INCREMENT,
+  `first_name` VARCHAR(45) NOT NULL,
+  `last_name` VARCHAR(45) NOT NULL,
+  `email` VARCHAR(45) NOT NULL,
+  `message` MEDIUMTEXT NOT NULL,
+  PRIMARY KEY (`messageID`),
+  UNIQUE INDEX `messageID` (`messageID` ASC) VISIBLE)
+ENGINE = InnoDB
+AUTO_INCREMENT = 4
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table `test`.`invoice`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `test`.`invoice` (
+  `idinvoice` INT NOT NULL AUTO_INCREMENT,
+  `idstatement` INT NOT NULL,
+  `date` VARCHAR(45) NOT NULL,
+  `charge` VARCHAR(45) NOT NULL,
+  `insurance` INT NOT NULL,
+  `total` INT NOT NULL,
+  `description` MEDIUMTEXT NOT NULL,
+  PRIMARY KEY (`idinvoice`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 3
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -134,7 +165,6 @@ DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
 
-
 -- -----------------------------------------------------
 -- Table `test`.`schedule`
 -- -----------------------------------------------------
@@ -149,6 +179,22 @@ CREATE TABLE IF NOT EXISTS `test`.`schedule` (
   `sunTL` VARCHAR(100) NULL DEFAULT NULL,
   PRIMARY KEY (`idphysician`))
 ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table `test`.`statement`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `test`.`statement` (
+  `idstatement` INT NOT NULL AUTO_INCREMENT,
+  `idpatient` VARCHAR(45) NOT NULL,
+  `balance_due` INT NOT NULL,
+  `due_date` VARCHAR(45) NOT NULL,
+  `paid` INT NOT NULL,
+  PRIMARY KEY (`idstatement`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 4
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -173,7 +219,7 @@ CREATE TABLE IF NOT EXISTS `test`.`user` (
   `type` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`iduser`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 18
+AUTO_INCREMENT = 21
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -193,6 +239,20 @@ SELECT CASE
          WHEN EXISTS (SELECT * FROM user WHERE user.username =username) THEN 'User'
        END;
 
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_addBeds
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addBeds`(idbed INT,idclinic INT,room_number varchar(45),occupancy_status varchar(45),idpatient INT)
+BEGIN
+insert into bed(idbed,idclinic,room_number,occupancy_status,idpatient)
+values(idbed,idclinic,room_number,occupancy_status,idpatient);
 END$$
 
 DELIMITER ;
@@ -219,28 +279,15 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
--- procedure sp_getContactUsMessages
+-- procedure sp_assignBed
 -- -----------------------------------------------------
 
 DELIMITER $$
 USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getContactUsMessages`()
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_assignBed`(In p_idbed INT, IN p_idpatient INT)
 BEGIN
-SELECT * from test.contact_us_messages;
-END$$
+   UPDATE bed SET `idpatient`=p_idpatient WHERE idbed = p_idbed;
 
-DELIMITER ;
-
--- -----------------------------------------------------
--- procedure sp_addBeds
--- -----------------------------------------------------
-
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addBeds`(idbed INT,idclinic INT,room_number varchar(45),occupancy_status varchar(45),idpatient INT)
-BEGIN
-insert into bed(idbed,idclinic,room_number,occupancy_status,idpatient)
-values(idbed,idclinic,room_number,occupancy_status,idpatient);
 END$$
 
 DELIMITER ;
@@ -256,6 +303,46 @@ BEGIN
 	UPDATE `user`
     SET `password` = new_password
     WHERE iduser = userID;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_createAdmin
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createAdmin`(
+	IN p_username VARCHAR(45),IN p_password VARCHAR(103),IN p_FN VARCHAR(45),
+    IN p_LN VARCHAR(45),IN p_street VARCHAR(45),IN p_city VARCHAR(45),
+    IN p_state VARCHAR(45),IN p_zip VARCHAR(45),IN p_phone VARCHAR(45),
+    IN p_dob VARCHAR(45),IN p_sex VARCHAR(45),IN p_email VARCHAR(45), IN p_type VARCHAR(45), IN p_deptId INT
+)
+BEGIN
+    if ( select exists (select 1 from `user` where username = p_username) ) THEN
+		select 'Username exists!!';
+	else
+
+        insert into `user`
+        (
+			`username`,`password`,`first_name`,`last_name`,`street`,`city`,`state`,`zip`,`phone`,
+            `date_of_birth`,`sex`,`email`, `type`
+		)
+        values
+        (
+			p_username,p_password,p_FN ,p_LN,p_street,p_city,p_state,p_zip,p_phone,
+            p_dob ,p_sex,p_email, p_type
+		);
+        insert into `admin`
+        (
+			`idpadmin`,`idDepartment`
+		)
+        values
+        (
+			LAST_INSERT_ID(), p_deptId
+		);
+	END IF;
 END$$
 
 DELIMITER ;
@@ -282,17 +369,57 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
--- procedure sp_findOwnPatient
+-- procedure sp_createInvoice
 -- -----------------------------------------------------
 
 DELIMITER $$
 USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_findOwnPatient`(
-    IN p_physicianid INT
-    
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createInvoice`(
+	IN statement INT,
+    IN invoice_date DATE,
+    IN charge INT,
+    IN insurance INT,
+    IN total INT,
+    IN `description` MEDIUMTEXT
 )
 BEGIN
-	SELECT idpatient from appointment where idphysician=p_physicianid;
+	INSERT INTO invoice
+    (idstatement, `date`, charge, insurance, total, `description`)
+    VALUES (statement, invoice_date, charge, insurance, charge-insurance, `description`);
+
+    UPDATE statement
+    SET balance_due = balance_due + charge - insurance
+    WHERE idstatement = statement;
+END$$
+
+DELIMITER ;
+
+
+-- -----------------------------------------------------
+-- procedure sp_deleteInvoice
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_deleteInvoice`(IN inID INT)
+BEGIN
+	DELETE FROM invoice
+    WHERE idinvoice = inID;
+END$$
+
+DELIMITER ;
+
+
+
+-- -----------------------------------------------------
+-- procedure sp_getStatementByDescr
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getStatementByDescr`(IN d date)
+BEGIN
+	select idstatement from statement where date = d;
 END$$
 
 DELIMITER ;
@@ -313,7 +440,7 @@ BEGIN
 	if ( select exists (select 1 from `user` where username = p_username) ) THEN
 		select 'Username exists!!';
 	else
-		
+
         insert into `user`
         (
 			`username`,`password`,`first_name`,`last_name`,`street`,`city`,`state`,`zip`,`phone`,
@@ -355,7 +482,7 @@ BEGIN
 	if ( select exists (select 1 from `user` where username = p_username) ) THEN
 		select 'Username exists!!';
 	else
-		
+
         insert into `user`
         (
 			`username`,`password`,`first_name`,`last_name`,`street`,`city`,`state`,`zip`,`phone`,
@@ -379,6 +506,38 @@ END$$
 
 DELIMITER ;
 
+-- -----------------------------------------------------
+-- procedure sp_createStatement
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createStatement`(
+	IN patientid INT,
+    IN balance INT,
+    IN due VARCHAR(45)
+)
+BEGIN
+	INSERT INTO statement
+    (idpatient, balance_due, due_date, paid)
+    VALUES (patientid, balance, due, FALSE);
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_deleteStatement
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_deleteStatement`(IN sID INT, IN pID VARCHAR(45))
+BEGIN
+	DELETE FROM statement
+    WHERE idstatement = sID and idpatient = pID;
+END$$
+
+DELIMITER ;
 -- -----------------------------------------------------
 -- procedure sp_createUser
 -- -----------------------------------------------------
@@ -412,6 +571,19 @@ END$$
 
 DELIMITER ;
 
+-- -----------------------------------------------------
+-- procedure sp_deleteAppointment
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_deleteAppointment`(IN appID INT)
+BEGIN
+	DELETE FROM appointment
+    WHERE idappointment = appID;
+END$$
+
+DELIMITER ;
 
 -- -----------------------------------------------------
 -- procedure sp_deleteBeds
@@ -422,6 +594,19 @@ USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_deleteBeds`(p_idbed INT)
 BEGIN
 DELETE FROM bed where idbed=p_idbed;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_deleteSchedule
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_deleteSchedule`(pid INT)
+BEGIN
+DELETE FROM schedule where idphysician=pid;
 END$$
 
 DELIMITER ;
@@ -439,20 +624,21 @@ END$$
 
 DELIMITER ;
 
-
 -- -----------------------------------------------------
--- procedure sp_deleteSchedule
+-- procedure sp_findOwnPatient
 -- -----------------------------------------------------
 
 DELIMITER $$
 USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_deleteSchedule`(pid INT)
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_findOwnPatient`(
+    IN p_physicianid INT
+
+)
 BEGIN
-DELETE FROM schedule where idphysician=pid;
+	SELECT idpatient from appointment where idphysician=p_physicianid;
 END$$
 
 DELIMITER ;
-
 
 -- -----------------------------------------------------
 -- procedure sp_getAppointments
@@ -462,10 +648,47 @@ DELIMITER $$
 USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getAppointments`(IN userID INT)
 BEGIN
-	SELECT appointment.appointment_date, appointment.description, user.first_name, user.last_name
-	FROM appointment
-	INNER JOIN user ON appointment.idphysician = user.iduser
-    where appointment.idpatient=userID;
+	SELECT idappointment, appointment_date, idphysician, `description` FROM appointment;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_getBeds
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getBeds`()
+BEGIN
+select * from bed;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_getContactUsMessages
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getContactUsMessages`()
+BEGIN
+SELECT * from test.contact_us_messages;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_getInvoices
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getInvoices`(IN statement INT)
+BEGIN
+	SELECT * FROM invoice
+    WHERE idstatement = statement;
 END$$
 
 DELIMITER ;
@@ -487,43 +710,18 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
--- procedure sp_getBeds
+-- procedure sp_getPhysicianNameByID
 -- -----------------------------------------------------
 
 DELIMITER $$
 USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getBeds`()
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getPhysicianNameByID`(IN physID INT)
 BEGIN
-select * from bed;
+	SELECT first_name, last_name FROM `user` WHERE iduser = physID;
 END$$
 
 DELIMITER ;
 
--- -----------------------------------------------------
--- procedure sp_assignBed
--- -----------------------------------------------------
-
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_assignBed`(In p_idbed INT, IN p_idpatient INT)
-BEGIN
-   UPDATE bed SET `idpatient`=p_idpatient WHERE idbed = p_idbed;
-    
-END$$
-
-DELIMITER ;
-
--- -----------------------------------------------------
--- procedure sp_getUser
--- -----------------------------------------------------
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getUser`(IN p_userid INT)
-BEGIN
-SELECT username,first_name,last_name,email from user where iduser=p_userid;
-END$$
-
-DELIMITER ;
 -- -----------------------------------------------------
 -- procedure sp_getPhysicianSchedules
 -- -----------------------------------------------------
@@ -537,7 +735,6 @@ END$$
 
 DELIMITER ;
 
-
 -- -----------------------------------------------------
 -- procedure sp_getPhysicianSchedulesById
 -- -----------------------------------------------------
@@ -550,6 +747,7 @@ SELECT * from test.schedule where idphysician=p_userid;
 END$$
 
 DELIMITER ;
+
 -- -----------------------------------------------------
 -- procedure sp_getPhysiciansByNameAndId
 -- -----------------------------------------------------
@@ -559,6 +757,112 @@ USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getPhysiciansByNameAndId`()
 BEGIN
 SELECT a.first_name, a.last_name, b.idphysician FROM test.user a JOIN test.physician b where a.iduser = b.idphysician;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_getStatements
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getStatements`(
+	IN patientid INT
+)
+BEGIN
+	SELECT * FROM statement
+    WHERE idpatient = patientid;
+END$$
+
+DELIMITER ;
+
+
+-- -----------------------------------------------------
+-- procedure sp_updateStatementBalance
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_updateStatementBalance`(
+	IN patientid VARCHAR(45), IN amount INT, IN statementid INT
+)
+BEGIN
+	update statement
+	set balance_due = (balance_due - amount), paid = (paid + amount)
+    WHERE idpatient = patientid and idstatement=statementid;
+END$$
+DELIMITER ;
+
+
+-- -----------------------------------------------------
+-- Table `test`.`paymentHistory`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `test`.`paymentHistory` (
+  `date` datetime not null,
+  `amount` INT NOT NULL,
+  `userID` varchar(45) NOT NULL,
+  `statementID` int not null,
+  PRIMARY KEY (`date`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+-- -----------------------------------------------------
+-- procedure sp_paymentHistory
+-- -----------------------------------------------------
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_paymentHistory`(IN p_userid INT, IN statementID INT)
+BEGIN
+SELECT * from paymentHistory where userID=p_userid and statementID=statementID;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_deletePaymentHistory
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_deletePaymentHistory`(IN p_userID VARCHAR(45), IN p_statementID INT )
+BEGIN
+	DELETE FROM paymentHistory
+    WHERE userID = p_userID and statementID = p_statementID;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_getUser
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getUser`(IN p_userid INT)
+BEGIN
+SELECT username,first_name,last_name,email from user where iduser=p_userid;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_modifyAppointment
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_modifyAppointment`(
+	IN appID INT,
+    IN appDate DATETIME,
+    IN physID INT,
+    IN descr MEDIUMTEXT
+)
+BEGIN
+	UPDATE appointment
+    SET appointment_date = appDate, idphysician = physID, `description` = descr
+    WHERE idappointment = appID;
 END$$
 
 DELIMITER ;
@@ -610,66 +914,19 @@ END$$
 
 DELIMITER ;
 
-
-
 -- -----------------------------------------------------
--- Table `test`.`admin`
+-- trigger to insert into paymenthistory
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `test`.`admin` (
-  `idpadmin` INT NOT NULL,
-  `idDepartment` INT NOT NULL,
-  PRIMARY KEY (`idpadmin`),
-  UNIQUE INDEX `idpadmin` (`idpadmin` ASC) VISIBLE)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8mb4
-COLLATE = utf8mb4_0900_ai_ci;
-
-
-insert into admin(`idpadmin`, `idDepartment`)
-values(1, 1);
-insert into user(`username`,`password`,`first_name`,`last_name`,`street`,`city`,`state`,`zip`,`phone`,
-            `date_of_birth`,`sex`,`email`, `type`)
-values('admin','admin','admin','admin','admin','admin','admin','admin','admin','admin','admin', 'admin', 'admin');
-
--- -----------------------------------------------------
--- procedure sp_createAdmin
--- --------- --------------------------------------------
-
 DELIMITER $$
 USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createAdmin`(
-	IN p_username VARCHAR(45),IN p_password VARCHAR(103),IN p_FN VARCHAR(45),
-    IN p_LN VARCHAR(45),IN p_street VARCHAR(45),IN p_city VARCHAR(45),
-    IN p_state VARCHAR(45),IN p_zip VARCHAR(45),IN p_phone VARCHAR(45),
-    IN p_dob VARCHAR(45),IN p_sex VARCHAR(45),IN p_email VARCHAR(45), IN p_type VARCHAR(45), IN p_deptId INT
-)
+CREATE DEFINER= root@localhost TRIGGER create_payment_history_on_balance_update
+AFTER UPDATE on statement
+FOR EACH ROW
 BEGIN
-    if ( select exists (select 1 from `user` where username = p_username) ) THEN
-		select 'Username exists!!';
-	else
-
-        insert into `user`
-        (
-			`username`,`password`,`first_name`,`last_name`,`street`,`city`,`state`,`zip`,`phone`,
-            `date_of_birth`,`sex`,`email`, `type`
-		)
-        values
-        (
-			p_username,p_password,p_FN ,p_LN,p_street,p_city,p_state,p_zip,p_phone,
-            p_dob ,p_sex,p_email, p_type
-		);
-        insert into `admin`
-        (
-			`idpadmin`,`idDepartment`
-		)
-        values
-        (
-			LAST_INSERT_ID(), p_deptId
-		);
-	END IF;
-END$$
-
+INSERT INTO paymentHistory (date, amount, userID, statementID) VALUES (now(), (old.balance_due - new.balance_due), old.idpatient, old.idstatement);
+END $$
 DELIMITER ;
+
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

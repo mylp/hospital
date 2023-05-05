@@ -1,0 +1,1 @@
+request.args.get('appointment_id')
