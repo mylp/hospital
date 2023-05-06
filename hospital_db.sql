@@ -225,6 +225,12 @@ COLLATE = utf8mb4_0900_ai_ci;
 
 USE `test` ;
 
+---------
+-- default admin user
+---------
+INSERT INTO `test`.`user` (`username`, `password`, `first_name`, `last_name`, `street`, `city`, `state`, `zip`, `phone`, `date_of_birth`, `sex`, `email`, `type`) VALUES ('admin', 'admin', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'admin');
+
+
 -- -----------------------------------------------------
 -- procedure sp_Identify_UserType
 -- -----------------------------------------------------
@@ -317,7 +323,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createAdmin`(
 	IN p_username VARCHAR(45),IN p_password VARCHAR(103),IN p_FN VARCHAR(45),
     IN p_LN VARCHAR(45),IN p_street VARCHAR(45),IN p_city VARCHAR(45),
     IN p_state VARCHAR(45),IN p_zip VARCHAR(45),IN p_phone VARCHAR(45),
-    IN p_dob VARCHAR(45),IN p_sex VARCHAR(45),IN p_email VARCHAR(45), IN p_type VARCHAR(45), IN p_deptId INT
+    IN p_dob VARCHAR(45),IN p_sex VARCHAR(45),IN p_email VARCHAR(45), IN p_deptId INT
 )
 BEGIN
     if ( select exists (select 1 from `user` where username = p_username) ) THEN
@@ -332,7 +338,7 @@ BEGIN
         values
         (
 			p_username,p_password,p_FN ,p_LN,p_street,p_city,p_state,p_zip,p_phone,
-            p_dob ,p_sex,p_email, p_type
+            p_dob ,p_sex,p_email, "admin"
 		);
         insert into `admin`
         (
@@ -913,6 +919,35 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_getCUMessageID
+-- -----------------------------------------------------
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getCUMessageID`(
+	IN fname VARCHAR(45), IN lname VARCHAR(45), IN email VARCHAR(45), IN message MEDIUMTEXT
+)
+BEGIN
+	select messageID from contact_us_messages where first_name=fname and last_name=lname and email=email and message= message;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_deleteCUMessage
+-- -----------------------------------------------------
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_deleteCUMessage`(
+	IN mID int
+)
+BEGIN
+	delete from contact_us_messages where messageID=mID;
+END$$
+
+DELIMITER ;
+
 
 -- -----------------------------------------------------
 -- trigger to insert into paymenthistory
