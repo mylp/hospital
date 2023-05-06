@@ -45,11 +45,13 @@
             </p>
             <form id="form-contact-us" action="/api/contacted" method="POST" >
                     <fieldset>
+                        <p style="color:red;">{{error}}</p>
+                        <p style="color:green;">{{success}}</p>
 						<legend>Fill out the following:</legend>
-                            First Name: <input id="fname" name="fname" type="text" required autofocus><br><br>
-                            Last Name: <input id="lname" name="lname" type="text" required autofocus><br><br>
-                            Your email: <input id="email" name="email" type="email" required autofocus><br><br>
-                            Message: <input id="message" name="message" type="text" required autofocus><br><br>
+                            First Name: <input id="fname" name="fname" type="text" value="{{first}}" required autofocus><br><br>
+                            Last Name: <input id="lname" name="lname" type="text" value="{{last}}" required autofocus><br><br>
+                            Your email: <input id="email" name="email" value="{{email}}" required autofocus><p><i>Ex: example@email.com</i></p>
+                            Message: <input id="message" name="message" type="text" value="{{message}}" required autofocus><br><br>
                             <input id='submit' type="submit" value="Submit" />
 
                     </fieldset>

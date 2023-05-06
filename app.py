@@ -20,32 +20,38 @@ def connect_to_db(app):
 
 
 @app.route('/')
-def main():
-    return render_template('homepage.html')
+def main(first='', last='', email='', message='', error='', success=''):
+    return render_template('homepage.html', first=first, last=last, message=message, error=error, success=success)
 
 
 @app.route('/signup')
-def showSignUp():
-    return render_template('signup.html')
+def showSignUp(username='', password='', first='', last='', street='', city='', state='', zip='', phone='', dob='', sex='', email='', errors=[]):
+    return render_template('signup.html', username=username, password=password, first=first, last=last, street=street, city=city, state=state, zip=zip, phone=phone, dob=dob, sex=sex, email=email, errors=errors)
 
 
 @app.route('/api/contacted', methods=['POST'])
 def showContacted():
+    error=''
     _fname = request.form['fname']
     _lname = request.form['lname']
     _email = request.form['email']
     _message = request.form['message']
 
-    conn = mysql.connect()
-    cursor = conn.cursor()
-    cursor.callproc('sp_addContactUsMessage',
-                    (_fname, _lname, _email, _message))
-    data = cursor.fetchall()
-    if len(data) == 0:
-        conn.commit()
-        return render_template('/contacted.html')
+    if not bool(re.match(r"^\S+@\S+\.\S+$", _email)):
+        error="Email not in correct example@email.com format"
+
+    if error != '':
+        return main(_fname, _lname, _email, _message, error, '')
     else:
-        return json.dumps({'error': str(data[0])})
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.callproc('sp_addContactUsMessage',
+                        (_fname, _lname, _email, _message))
+        data = cursor.fetchall()
+        if len(data) == 0:
+            conn.commit()
+            return main('','','','','','Message sent successfully!')
+
 
 
 @app.route('/contactUsMessageInbox')
@@ -295,13 +301,13 @@ def showScheduleAppointment():
 
 
 @app.route('/login')
-def showLogin():
-    return render_template('login.html')
+def showLogin(error=''):
+    return render_template('login.html', error=error)
 
 
 @app.route('/loginBilling')
-def showLoginBilling():
-    return render_template('loginBilling.html')
+def showLoginBilling(error=''):
+    return render_template('loginBilling.html', error=error)
 
 
 @app.route('/logout')
@@ -482,9 +488,7 @@ def validateLogin():
             else:
                 return redirect('/adminHome')
         else:
-            return render_template('error.html', error='Wrong Email address or Password')
-    else:
-        return render_template('error.html', error='Wrong Email address or Password')
+            return showLogin('Wrong Email address or Password')
 
 @app.route('/api/validateLoginBilling', methods=['POST', 'GET'])
 def validateLoginBilling():
@@ -497,15 +501,12 @@ def validateLoginBilling():
     data = cursor.fetchall()
 
     if len(data) > 0:
-        # definitely not safe security wise but need to be able to login in with original admin
-        if check_password_hash(str(data[0][2]), _password) or (_username == 'admin' and _password == 'admin'):
+        if check_password_hash(str(data[0][2]), _password):
             session['user'] = data[0][0]
             if data[0][13] == "user":
                 return redirect('/billing')
         else:
-            return render_template('error.html', error='Wrong Email address or Password')
-    else:
-        return render_template('error.html', error='Wrong Email address or Password')
+            return showLogin('Wrong Email address or Password')
 
 userHeadings = ("First Name", "Last Name", "Street", "City",
                 "State", "Zip", "Phone Number", "DOB", "Sex", "Email")
@@ -551,6 +552,7 @@ def seePhysSchedul():
 
 @app.route('/api/signup', methods=['POST'])
 def signUp():
+    errors = []
     _first = request.form['inputFirst']
     _last = request.form['inputLast']
     _street = request.form['inputStreet']
@@ -563,9 +565,30 @@ def signUp():
     _email = request.form['inputEmail']
     _username = request.form['inputUsername']
     _password = request.form['inputPassword']
+    if not bool(re.match(r"^\d{2}/\d{2}/\d{4}$", _dob)):
+        errors.append("DOB is not in MM/DD/YYYY format")
 
-    if all((_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email)):
+    if not bool(re.match("^\d{3}-\d{3}-\d{4}$", _phone)):
+        errors.append("Phone number is not in XXX-XXX-XXXX format")
 
+    if len(_zip) != 5:
+        errors.append("Invalid zipcode")
+
+    if _sex not in ['M', 'F', 'Other']:
+        errors.append("Gender must be one of the following: M, F, Other")
+
+    numCapitals = sum([1 for ch in _password if ch.isupper()])
+    numNumbers = sum([1 for ch in _password if ch.isdigit()])
+    specialChar = sum([1 for ch in _password if ch in "!?$"])
+    if numCapitals == 0 or numNumbers == 0 or specialChar == 0 or len(_password)<8:
+        errors.append("Password must contain at least: 1 number, 1 capital letter, 1 special character (!?$) and be at least 8 characters long")
+
+    if not bool(re.match(r"^\S+@\S+\.\S+$", _email)):
+        errors.append("Email not in correct example@email.com format")
+
+    if errors:
+        return showSignUp(_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, errors)
+    else:
         password = generate_password_hash(_password)
         conn = mysql.connect()
         cursor = conn.cursor()
@@ -573,18 +596,22 @@ def signUp():
                         (_username, password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email))
         data = cursor.fetchall()
 
-        if len(data) == 1:
+        if str(data[0])!='(\'Username exists!!\',)':
             conn.commit()
             session['user'] = data[0][0]
             return redirect('/userHome')
-        else:
-            return json.dumps({'error': str(data[0])})
-    else:
-        return json.dumps({'html': '<span>Enter the required fields</span>'})
+        elif str(data[0])=='(\'Username exists!!\',)':
+            errors.append("Username already exists!")
+            # json.dumps({'error': str(data[1])})
+            return showSignUp(_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, errors)
 
+@app.route('/signupPhysician')
+def showSignUpPhysician(username, pwd, first, last, street, city, state, zip, phone, dob, sex, email, spec, rank, dID, cID, errors):
+    return render_template('createPhysician.html', username=username, passwordd=pwd, first=first, last=last, street=street, city=city, state=state, zip=zip, phone=phone, dob=dob, sex=sex, email=email, spec=spec, rank=rank, dID=dID, cID=cID, errors=errors)
 
 @app.route('/api/signupPhysician', methods=['POST'])
 def signupPhysician():
+    errors = []
     _username = request.form['inputUsername']
     _password = request.form['inputPassword']
     _first = request.form['inputFirst']
@@ -597,13 +624,46 @@ def signupPhysician():
     _dob = request.form['inputDOB']
     _sex = request.form['inputSex']
     _email = request.form['inputEmail']
-    _spec = request.form['Specialization']
-    _rank = request.form['Rank']
-    _deptId = request.form['DepartmentID']
-    _clinicId = request.form['ClinicID']
+    _spec = request.form['inputSpec']
+    _rank = request.form['inputRank']
+    _deptId = request.form['inputDept']
+    _clinicId = request.form['inputClinic']
 
-    if all((_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _spec,
-            _rank, _deptId, _clinicId)):
+    if not bool(re.match(r"^\d{2}/\d{2}/\d{4}$", _dob)):
+        errors.append("DOB is not in MM/DD/YYYY format")
+
+    if not bool(re.match("^\d{3}-\d{3}-\d{4}$", _phone)):
+        errors.append("Phone number is not in XXX-XXX-XXXX format")
+
+    if len(_zip) != 5:
+        errors.append("Invalid zipcode")
+
+    if _sex not in ['M', 'F', 'Other']:
+        errors.append("Gender must be one of the following: M, F, Other")
+
+    numCapitals = sum([1 for ch in _password if ch.isupper()])
+    numNumbers = sum([1 for ch in _password if ch.isdigit()])
+    specialChar = sum([1 for ch in _password if ch in "!?$"])
+    if numCapitals == 0 or numNumbers == 0 or specialChar == 0 or len(_password)<8:
+        errors.append("Password must contain at least: 1 number, 1 capital letter, 1 special character (!?$) and be at least 8 characters long")
+
+    if not bool(re.match(r"^\S+@\S+\.\S+$", _email)):
+        errors.append("Email not in correct example@email.com format")
+
+    try:
+        int(_deptId)
+    except:
+        errors.append("Dept ID must be a number")
+
+    try:
+        int(_clinicId)
+    except:
+        errors.append("Clinic ID must be a number")
+
+    if errors:
+        return showSignUpPhysician(_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _spec,_rank, _deptId, _clinicId, errors)
+
+    else:
         password = generate_password_hash(_password)
         conn = mysql.connect()
         cursor = conn.cursor()
@@ -616,13 +676,21 @@ def signupPhysician():
             conn.commit()
             return redirect('/adminHome')
         else:
-            return json.dumps({'error': str(data[0])})
-    else:
-        return json.dumps({'html': '<span>Enter the required fields</span>'})
+            errors.append("Username already exists!")
+            # json.dumps({'error': str(data[0])})
+            return showSignUpPhysician(_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob,
+                                       _sex, _email, _spec, _rank, _deptId, _clinicId, errors)
+
+@app.route('/signupNurse')
+def showSignUpNurse(username='', password='', first='', last='', street='', city='', state='', zip='', phone='', dob='',
+                                       sex='', email='', classification='', deptId='', clinicId='', errors=[]):
+    return render_template('createNurse.html', username=username, password=password, first=first, last=last, street=street, city=city, state=state, zip=zip, phone=phone, dob=dob,
+                                       sex=sex, email=email, classification=classification , deptId=deptId, clinicId=clinicId, errors=errors)
 
 
 @app.route('/api/signupNurse', methods=['POST'])
 def signupNurse():
+    errors = []
     _username = request.form['inputUsername']
     _password = request.form['inputPassword']
     _first = request.form['inputFirst']
@@ -635,11 +703,45 @@ def signupNurse():
     _dob = request.form['inputDOB']
     _sex = request.form['inputSex']
     _email = request.form['inputEmail']
-    _classification = request.form['Classification']
-    _deptId = request.form['DepartmentID']
-    _clinicId = request.form['ClinicID']
+    _classification = request.form['inputClassification']
+    _deptId = request.form['inputDept']
+    _clinicId = request.form['inputClinic']
 
-    if all((_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _classification, _deptId, _clinicId)):
+    if not bool(re.match(r"^\d{2}/\d{2}/\d{4}$", _dob)):
+        errors.append("DOB is not in MM/DD/YYYY format")
+
+    if not bool(re.match("^\d{3}-\d{3}-\d{4}$", _phone)):
+        errors.append("Phone number is not in XXX-XXX-XXXX format")
+
+    if len(_zip) != 5:
+        errors.append("Invalid zipcode")
+
+    if _sex not in ['M', 'F', 'Other']:
+        errors.append("Gender must be one of the following: M, F, Other")
+
+    numCapitals = sum([1 for ch in _password if ch.isupper()])
+    numNumbers = sum([1 for ch in _password if ch.isdigit()])
+    specialChar = sum([1 for ch in _password if ch in "!?$"])
+    if numCapitals == 0 or numNumbers == 0 or specialChar == 0 or len(_password)<8:
+        errors.append("Password must contain at least: 1 number, 1 capital letter, 1 special character (!?$) and be at least 8 characters long")
+
+    if not bool(re.match(r"^\S+@\S+\.\S+$", _email)):
+        errors.append("Email not in correct example@email.com format")
+
+    try:
+        int(_deptId)
+    except:
+        errors.append("Dept ID must be a number")
+
+    try:
+        int(_clinicId)
+    except:
+        errors.append("Clinic ID must be a number")
+
+    if errors:
+        return showSignUpNurse(_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _classification, _deptId, _clinicId, errors)
+
+    else:
         password = generate_password_hash(_password)
         conn = mysql.connect()
         cursor = conn.cursor()
@@ -651,13 +753,18 @@ def signupNurse():
             conn.commit()
             return redirect('/adminHome')
         else:
-            return json.dumps({'error': str(data[0])})
-    else:
-        return json.dumps({'html': '<span>Enter the required fields</span>'})
+            errors.append("Username already exists!")
+            # json.dumps({'error': str(data[0])})
+            return showSignUpNurse(_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob,
+                                   _sex, _email, _classification, _deptId, _clinicId, errors)
 
+@app.route('/signupAdmin')
+def showSignUpAdmin(username, pwd, first, last, street, city, state, zip, phone, dob, sex, email, dID, errors):
+    return render_template("createAdmin.html", username=username, password=pwd, first=first, last=last, street=street, city=city, state=state, zip=zip, phone=phone, dob=dob, sex=sex, email=email, dID=dID, errors=errors)
 
 @app.route('/api/signupAdmin', methods=['POST'])
 def signupAmin():
+    errors = []
     _username = request.form['inputUsername']
     _password = request.form['inputPassword']
     _first = request.form['inputFirst']
@@ -670,26 +777,52 @@ def signupAmin():
     _dob = request.form['inputDOB']
     _sex = request.form['inputSex']
     _email = request.form['inputEmail']
-    _type = request.form['Type']
-    _deptId = int(request.form['DepartmentID'])
+    _deptId = int(request.form['inputDept'])
 
-    if all((_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _type,
-            _deptId)):
+    if not bool(re.match(r"^\d{2}/\d{2}/\d{4}$", _dob)):
+        errors.append("DOB is not in MM/DD/YYYY format")
+
+    if not bool(re.match("^\d{3}-\d{3}-\d{4}$", _phone)):
+        errors.append("Phone number is not in XXX-XXX-XXXX format")
+
+    if len(_zip) != 5:
+        errors.append("Invalid zipcode")
+
+    if _sex not in ['M', 'F', 'Other']:
+        errors.append("Gender must be one of the following: M, F, Other")
+
+    numCapitals = sum([1 for ch in _password if ch.isupper()])
+    numNumbers = sum([1 for ch in _password if ch.isdigit()])
+    specialChar = sum([1 for ch in _password if ch in "!?$"])
+    if numCapitals == 0 or numNumbers == 0 or specialChar == 0 or len(_password)<8:
+        errors.append("Password must contain at least: 1 number, 1 capital letter, 1 special character (!?$) and be at least 8 characters long")
+
+    if '@' not in _email or '.' not in _email:
+        errors.append("Email is not in email@example.com format")
+
+    try:
+        int(_deptId)
+    except:
+        errors.append("Dept ID must be a number")
+
+    if errors:
+        return showSignUpAdmin(_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _deptId, errors)
+
+    else:
         password = generate_password_hash(_password)
         conn = mysql.connect()
         cursor = conn.cursor()
         cursor.callproc('sp_createAdmin', (
-            _username, password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _type,
+            _username, password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email,
             _deptId))
         data = cursor.fetchall()
         if len(data) == 0:
             conn.commit()
             return redirect('/adminHome')
         else:
-            return json.dumps({'error': data})
-    else:
-        return json.dumps({'html': '<span>Enter the required fields</span>'})
-
+            errors.append("Username already exists!")
+            # json.dumps({'error': str(data[0])})
+            return showSignUpAdmin(_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _deptId, errors)
 
 @app.route('/api/addBed', methods=['POST'])
 def addBed():
@@ -820,6 +953,14 @@ def deletePaymentHistory(statementID, userid):
     conn = mysql.connect()
     cursor = conn.cursor()
     cursor.callproc('sp_deletePaymentHistory', (userid,statementID,))
+    conn.commit()
+
+def deleteCUMessage(fname, lname, email, message):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_getCUMessageID', (fname, lname, email, message,))
+    messageID = cursor.fetchall()[0]
+    cursor.callproc('sp_deleteCUMessage', (messageID,))
     conn.commit()
 
 ###############################

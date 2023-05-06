@@ -36,65 +36,78 @@
 			<div class="container-fluid py-5">
 				<h1 class="display-5 fw-bold text-center">Sign Up</h1>
 				<form id="form-signin" action="/api/signupPhysician" method="POST">
+					<ul>
+						{% for error in errors %}
+							<li><p style="color: red;">{{error}}</p></li>
+						{% endfor %}
+					</ul>
 					<label for="inputFirst" class="sr-only">First Name</label>
-					<input type="first" name="inputFirst" id="inputFirst" class="form-control" placeholder="First" required
+					<input type="first" name="inputFirst" id="inputFirst" class="form-control" value="{{first}}" required
 						autofocus />
+					<br>
 					<label for="inputLast" class="sr-only">Last Name</label>
-					<input type="last" name="inputLast" id="inputLast" class="form-control" placeholder="Last" required
+					<input type="last" name="inputLast" id="inputLast" class="form-control" value="{{last}}" required
 						autofocus />
+					<br>
 					<label for="inputStreet" class="sr-only">Street</label>
-					<input type="street" name="inputStreet" id="inputStreet" class="form-control" placeholder="Street"
+					<input type="street" name="inputStreet" id="inputStreet" class="form-control" value="{{street}}"
 						required autofocus />
+					<br>
 					<label for="inputCity" class="sr-only">City</label>
-					<input type="city" name="inputCity" id="inputCity" class="form-control" placeholder="City" required
+					<input type="city" name="inputCity" id="inputCity" class="form-control" value="{{city}}" required
 						autofocus />
+					<br>
 					<label for="inputState" class="sr-only">State</label>
-					<input type="state" name="inputState" id="inputState" class="form-control" placeholder="State" required
+					<input type="state" name="inputState" id="inputState" class="form-control" value="{{state}}" required
 						autofocus />
+					<br>
 					<label for="inputZip" class="sr-only">Zip</label>
-					<input type="zip" name="inputZip" id="inputZip" class="form-control" placeholder="Zip" required
+					<input type="zip" name="inputZip" id="inputZip" class="form-control" value="{{zip}}" required
 						autofocus />
+					<br>
 					<label for="inputPhone" class="sr-only">Phone</label>
-					<input type="phone" name="inputPhone" id="inputPhone" class="form-control" placeholder="Phone" required
+					<p><i>Ex: 319-123-4567</i></p>
+					<input type="phone" name="inputPhone" id="inputPhone" class="form-control" value="{{phone}}" required
 						autofocus />
+					<br>
 					<label for="inputDOB" class="sr-only">Date of Birth</label>
-					<input type="dob" name="inputDOB" id="inputDOB" class="form-control" placeholder="Date of Birth"
+					<p><i>Ex: 02/08/2023</i></p>
+					<input type="dob" name="inputDOB" id="inputDOB" class="form-control" value="{{dob}}"
 						required autofocus />
+					<br>
 					<label for="inputSex" class="sr-only">Sex</label>
-					<input type="sex" name="inputSex" id="inputSex" class="form-control" placeholder="Sex"
+					<input type="sex" name="inputSex" id="inputSex" class="form-control" value="{{sex}}"
 						required autofocus />
+					<br>
 					<label for="inputEmail" class="sr-only">Email address</label>
-					<input type="email" name="inputEmail" id="inputEmail" class="form-control"
-						placeholder="Email address" required autofocus />
-					<label for="inputUsername" class="sr-only">Username</label>
-					<input type="username" name="inputUsername" id="inputUsername" class="form-control" placeholder="Username" required
+					<p><i>Ex: email@example.com</i></p>
+					<input name="inputEmail" id="inputEmail" class="form-control"
+						value="{{email}}" required autofocus />
+					<br>
+					<label for="inputSpec" class="sr-only">Specialization</label>
+					<input type="inputSpec" name="inputSpec" id="inputSpec" class="form-control" value="{{spec}}" required
 						autofocus />
+					<br>
+					<label for="inputRank" class="sr-only">Rank</label>
+					<input type="inputRank" name="inputRank" id="inputRank" class="form-control" value="{{rank}}" required
+						autofocus />
+					<br>
+					<label for="inputDept" class="sr-only">Department ID</label>
+					<input type="inputDept" name="inputDept" id="inputDept" class="form-control" value="{{dID}}" required
+						autofocus />
+					<br>
+					<label for="inputClinic" class="sr-only">Clinic ID</label>
+					<input type="inputClinic" name="inputClinic" id="inputClinic" class="form-control" value="{{cID}}" required
+						autofocus />
+					<br>
+					<label for="inputUsername" class="sr-only">Username</label>
+					<input type="username" name="inputUsername" id="inputUsername" class="form-control" value="{{username}}" required
+						autofocus />
+					<br>
 					<label for="inputPassword" class="sr-only">Password</label>
-					<input type="password" name="inputPassword" id="inputPassword" class="form-control"
-						placeholder="Password" required />
-                    <!--
-						  <label for="id" class="sr-only">Physician Id</label>
-                    <input type="id" name="id" id="id" class="form-control"
-                    placeholder="Physician Id" required />
-					-->
-
-
-                    <label for="Specialization" class="sr-only">Specialization</label>
-                    <input type="Specialization" name="Specialization" id="Specialization" class="form-control"
-                    placeholder="Specialization" required />
-
-                    <label for="Rank" class="sr-only">Rank</label>
-                    <input type="Rank" name="Rank" id="Rank" class="form-control"
-                    placeholder="Rank" required />
-
-                    <label for="DepartmentID" class="sr-only">Department ID</label>
-                    <input type="DepartmentID" name="DepartmentID" id="DepartmentID" class="form-control"
-                    placeholder="Department ID" required />
-
-                    <label for="ClinicID" class="sr-only">Clinic ID</label>
-                    <input type="ClinicID" name="ClinicID" id="ClinicID" class="form-control"
-                    placeholder="Clinic ID" required />
-
+					<p><i>Must contain at least: 1 capital letter, 1 number, 1 special character (!?$) and be at least 8 characters long</i></p>
+					<input type="password" name="inputPassword" id="inputPassword" class="form-control" value="{{password}}" required />
+					<br>
 					<button class="btn btn-lg btn-primary btn-block" type="submit">
 						Sign up
 					</button>
