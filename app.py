@@ -620,7 +620,7 @@ def assignBed():
             conn.commit()
             return redirect('/seePhysSchedule')
         else:
-            return json.dumps({'error': str(data[0])})
+            return json.dumps({'error': str(data)})
     else:
         return json.dumps({'html': '<span>Enter the required fields</span>'})
 
@@ -630,15 +630,15 @@ def dischargePatient():
     idpatient=request.form['idpatient']
     id=session['user']
     summ=request.form['idsummary']
-    
+    print()
     if all( (idpatient,id)):
 
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.callproc('sp_dischargePatient', (idpatient,id,summ))
+        cursor.callproc('sp_dischargePatient', (int(idpatient),id,summ,))
         data = cursor.fetchall()
 
-        if len(data) == 0:
+        if len(data) != 0:
             conn.commit()
             return redirect('/physicianHome')
         else:
@@ -657,9 +657,9 @@ def assignBedAdmin():
 
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.callproc('sp_assignBed', (idbed,idpatient))
+        cursor.callproc('sp_assignBedAdnin', (idbed,idpatient))
         data = cursor.fetchall()
-
+        print(data)
         if len(data) == 0:
             conn.commit()
             return redirect('/ManageBeds')
@@ -706,7 +706,7 @@ def billNotification():
         print(type(data[0][0]))
         
         msgAlert(patientEmail);
-        if len(data) == 0:
+        if len(data) != 0:
             conn.commit()
             return redirect('/physicianHome')
         else:

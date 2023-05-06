@@ -548,6 +548,20 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
+-- procedure sp_assignBedAdmin
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_assignBedAdnin`(In p_idbed INT, IN p_idpatient INT)
+BEGIN
+      UPDATE bed SET `idpatient`=p_idpatient WHERE idbed = p_idbed AND EXISTS (select idpatient from user where iduser=p_idpatient);
+    
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
 -- procedure sp_dischargePatient
 -- -----------------------------------------------------
 
