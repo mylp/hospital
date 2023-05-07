@@ -606,8 +606,8 @@ def signUp():
             return showSignUp(_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, errors)
 
 @app.route('/signupPhysician')
-def showSignUpPhysician(username, pwd, first, last, street, city, state, zip, phone, dob, sex, email, spec, rank, dID, cID, errors):
-    return render_template('createPhysician.html', username=username, passwordd=pwd, first=first, last=last, street=street, city=city, state=state, zip=zip, phone=phone, dob=dob, sex=sex, email=email, spec=spec, rank=rank, dID=dID, cID=cID, errors=errors)
+def showSignUpPhysician(username='', pwd='', first='', last='', street='', city='', state='', zip='', phone='', dob='', sex='', email='', spec='', rank='', dID='', cID='', errors=''):
+    return render_template('createPhysician.html', username=username, password=pwd, first=first, last=last, street=street, city=city, state=state, zip=zip, phone=phone, dob=dob, sex=sex, email=email, spec=spec, rank=rank, dID=dID, cID=cID, errors=errors)
 
 @app.route('/api/signupPhysician', methods=['POST'])
 def signupPhysician():
@@ -759,7 +759,7 @@ def signupNurse():
                                    _sex, _email, _classification, _deptId, _clinicId, errors)
 
 @app.route('/signupAdmin')
-def showSignUpAdmin(username, pwd, first, last, street, city, state, zip, phone, dob, sex, email, dID, errors):
+def showSignUpAdmin(username='', pwd='', first='', last='', street='', city='', state='', zip='', phone='', dob='', sex='', email='', dID='', errors=''):
     return render_template("createAdmin.html", username=username, password=pwd, first=first, last=last, street=street, city=city, state=state, zip=zip, phone=phone, dob=dob, sex=sex, email=email, dID=dID, errors=errors)
 
 @app.route('/api/signupAdmin', methods=['POST'])
