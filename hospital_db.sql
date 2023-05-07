@@ -848,7 +848,7 @@ DELIMITER $$
 USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getUser`(IN p_userid INT)
 BEGIN
-SELECT username,first_name,last_name,email from user where iduser=p_userid;
+SELECT username,first_name,last_name,street,city,state,zip,phone,date_of_birth,sex,email from user where iduser=p_userid;
 END$$
 
 DELIMITER ;

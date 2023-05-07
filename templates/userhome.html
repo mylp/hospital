@@ -23,6 +23,7 @@
                     class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none"
                 >
                     <span class="fs-4">R.A.M. Hospital</span>
+
                 </a>
                 <ul class="nav nav-pills">
                     <li class="nav-item">
@@ -47,7 +48,8 @@
         </header>
 
         <div class="container overflow-hidden">
-            <h1>User Info </h1>
+            <p><i>Hello, {{data[0]}}!</i></p>
+            <h1>Your Info </h1>
             <table class="table">
        
                 <tr class="table_header">
@@ -56,7 +58,7 @@
                 {% endfor %}
                 </tr>
                 <tr class="table_row">
-                {% for d in data %}
+                {% for d in data[1:] %}
                     <td>{{d}}</td>
                 {% endfor %}
                 </tr>
