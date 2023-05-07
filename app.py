@@ -519,7 +519,7 @@ def userHome():
     id = session['user']
     cursor.callproc('sp_getUser', (id,))
     data = cursor.fetchall()
-    return render_template('userhome.html', headings=userHeadings, data=data[0][3:-1])
+    return render_template('userhome.html', headings=userHeadings, data=data[0])
 
 
 appointmentHeadings = ("Appointment Date", "Description",
