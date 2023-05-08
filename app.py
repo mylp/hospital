@@ -314,7 +314,7 @@ def createAppointment():
 
     if len(data) == 1:
         conn.commit()
-        return redirect('/appointment')
+        return redirect('/appointment?appointment_id=' + str(data[0][0]))
     else:
         return json.dumps({'error': str(data[0])})
     
@@ -353,7 +353,6 @@ def modifyAppointment():
     time = date.time()
     date = date.strftime("%Y-%m-%d")
     selected = [selected[0], date, time, selected[2], selected[3], selected[4]]
-    app.logger.debug(selected)
     appointments = [appointment for appointment in appointments if appointment[0] != _appointmentID]
     for appointment in appointments:
         appointment[2] = getPhysicianNameByID(appointment[2])
