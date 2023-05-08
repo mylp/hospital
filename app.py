@@ -1,6 +1,6 @@
 import re
 
-from flask import Flask, render_template, request, json, session, redirect
+from flask import Flask, render_template, request, json, session, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from flaskext.mysql import MySQL
 
@@ -11,7 +11,7 @@ mysql = MySQL()
 
 def connect_to_db(app):
     app.config['MYSQL_DATABASE_USER'] = 'root'
-    app.config['MYSQL_DATABASE_PASSWORD'] = 'Gooster1225!2'
+    app.config['MYSQL_DATABASE_PASSWORD'] = 'PepeSilvia1259#12!'
     app.config['MYSQL_DATABASE_DB'] = 'test'
     app.config['MYSQL_DATABASE_HOST'] = 'localhost'
     app.config['SECRET_KEY'] = '1234567890'
@@ -224,6 +224,21 @@ def getStatements():
     statements = cursor.fetchall()
     return statements
 
+@app.route('/api/changeInsurance', methods=['GET','POST'])
+def changeInsurance():
+    try:
+        _insurance = request.form['inputInsurance']
+    except:
+        return render_template('account.html', error='Please enter an insurance provider')
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_changeInsurance', (session['user'], _insurance))
+    data = cursor.fetchall()
+    if len(data) == 0:
+        conn.commit()
+        return redirect(url_for('account', insurance=_insurance))
+    else:
+        return json.dumps({'error': str(data[0])})
 
 @app.route('/billing')
 def showBilling():

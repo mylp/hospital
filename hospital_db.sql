@@ -217,6 +217,7 @@ CREATE TABLE IF NOT EXISTS `test`.`user` (
   `sex` VARCHAR(45) NOT NULL,
   `email` VARCHAR(45) NOT NULL,
   `type` VARCHAR(45) NOT NULL,
+  `insurance` VARCHAR(45) NULL DEFAULT NULL,
   PRIMARY KEY (`iduser`))
 ENGINE = InnoDB
 AUTO_INCREMENT = 21
@@ -798,6 +799,21 @@ BEGIN
 	set balance_due = (balance_due - amount), paid = (paid + amount)
     WHERE idpatient = patientid and idstatement=statementid;
 END$$
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_changeInsurance
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_changeInsurance`(IN userID INT, IN insurance_type VARCHAR(45))
+BEGIN
+	UPDATE `user`
+    SET insurance = insurance_type
+    WHERE iduser = userID;
+END$$
+
 DELIMITER ;
 
 
