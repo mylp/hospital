@@ -18,16 +18,9 @@ class TestScheduling(unittest.TestCase):
     def test_create_schedule(self):
         createPhysician('phy1', 'phy1', 'audrey', 'powers', '123 Street', 'Iowa City', 'Iowa', '319-883-9334', '99/99/9999', 's', '1', '1', '1', '1', '1', '1')
         response = self.client.post('/api/setHours', data=dict(
-            Monday=1,
-            Tuesday=1,
-            Wednesday=0,
-            Thursday=0,
-            Friday=0,
-            Saturday=0,
-            Sunday=0,
             physician='audrey powers',
-            MondayTimes='02:00 PM-03:00PM',
-            TuesdayTimes='02:00 PM-03:00PM',
+            MondayTimes='02:00 PM-03:00 PM',
+            TuesdayTimes='02:00 PM-03:00 PM',
             WednesdayTimes='',
             ThursdayTimes='',
             FridayTimes='',
