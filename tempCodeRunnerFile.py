@@ -1,1 +1,1 @@
-request.args.get('appointment_id')
+cursor.callproc('sp_getPhysicianNameByID', (id,))

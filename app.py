@@ -1,8 +1,12 @@
-from flask import Flask, render_template, request, json, session, redirect
+from flask import Flask, render_template, request, json, session, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from flaskext.mysql import MySQL
 
 app = Flask(__name__)
+
+
+import logging
+app.logger.setLevel(logging.DEBUG)
 
 mysql = MySQL()
 
@@ -12,6 +16,7 @@ def connect_to_db(app):
     app.config['MYSQL_DATABASE_DB'] = 'test'
     app.config['MYSQL_DATABASE_HOST'] = 'localhost'
     app.config['SECRET_KEY'] = '1234567890'
+    app.config['DEBUG'] = True
     mysql.app = app
     mysql.init_app(app)
 
@@ -175,13 +180,9 @@ def getPhysicianNameByID(id):
     cursor = conn.cursor()
     cursor.callproc('sp_getPhysicianNameByID', (id,))
     data = cursor.fetchall()
-    if len(data) > 0:
-        conn.commit()
-        json.dumps({'message': 'Physician name successfully'})
     return data[0][0] + " " + data[0][1]
 
 def getPhysicianSchedulesById():
-
     conn = mysql.connect()
     cursor = conn.cursor()
     cursor.callproc('sp_getPhysicianSchedulesById',(session['user'],))
@@ -208,7 +209,7 @@ def getAppointments():
     appointments = cursor.fetchall()
     formatted = []
     for appointment in appointments:
-        individual = [appointment[0], appointment[1], appointment[2], appointment[3]]
+        individual = [appointment[0], appointment[1], appointment[2], appointment[3], appointment[4]]
         formatted.append(individual)
     return formatted
 
@@ -216,7 +217,7 @@ def getAppointments():
 def showAppointment():
     user_appointments = getAppointments()
     for appointment in user_appointments:
-        appointment[2] = getPhysicianNameByID(appointment[2])
+        appointment[3] = getPhysicianNameByID(appointment[3])
     return render_template('appointment.html', appointments=user_appointments)
 
 @app.route('/createAppointment')
@@ -300,7 +301,7 @@ def ManageBeds():
 
 @app.route('/api/createAppointment', methods=['POST'])
 def createAppointment():
-    p_names = getPhysiciansByNameAndId().keys()
+
     _date = request.form['inputDate'] + " " + request.form['inputTime']
     _physician = getPhysiciansByIdUsingName(request.form["physician"])
     _patient = session['user']
@@ -308,13 +309,12 @@ def createAppointment():
 
     conn = mysql.connect()
     cursor = conn.cursor()
-    cursor.callproc('sp_createAppointment', (_date, _physician, _patient, _reason))
+    cursor.callproc('sp_createAppointment', (_date, int(_physician), int(_patient), _reason))
     data = cursor.fetchall()
 
-    if len(data) == 0:
+    if len(data) == 1:
         conn.commit()
-        new_appointments = getAppointments()
-        return render_template('appointment.html', appointments=new_appointments)
+        return redirect('/appointment')
     else:
         return json.dumps({'error': str(data[0])})
     
@@ -339,6 +339,7 @@ def saveAppointment():
 @app.route('/api/modifyAppointment', methods=['GET','POST'])
 def modifyAppointment():
     appointments = getAppointments()
+    
     phys = getPhysiciansByNameAndId().keys()
     _appointmentID = int(request.args.get('appointment_id'))
     unselected = []
@@ -351,11 +352,12 @@ def modifyAppointment():
     date = selected[1]
     time = date.time()
     date = date.strftime("%Y-%m-%d")
-    selected = [selected[0], date, time, selected[2], selected[3]]
+    selected = [selected[0], date, time, selected[2], selected[3], selected[4]]
+    app.logger.debug(selected)
     appointments = [appointment for appointment in appointments if appointment[0] != _appointmentID]
     for appointment in appointments:
         appointment[2] = getPhysicianNameByID(appointment[2])
-    selected_phys = getPhysicianNameByID(selected[3])
+    selected_phys = getPhysicianNameByID(selected[4])
     return render_template('modifyAppointment.html', appointments=unselected, p_names=phys, selected=selected, selected_phys=selected_phys)
 
 @app.route('/api/deleteAppointment', methods=['GET', 'POST'])
@@ -656,7 +658,7 @@ def deleteSchedule(pid):
     cursor.callproc('sp_deleteSchedule', (pid,))
     conn.commit()
 
-def create_appointment(date, pid, uid, reason):
+""" def create_appointment(date, pid, uid, reason):
     conn = mysql.connect()
     cursor = conn.cursor()
     cursor.callproc('sp_createAppointment', (date, pid, uid, reason))
@@ -678,7 +680,7 @@ def delete_appointment(aid):
     conn = mysql.connect()
     cursor = conn.cursor()
     cursor.callproc('sp_deleteAppointment', (aid,))
-    conn.commit()
+    conn.commit() """
 
 
 ###############################

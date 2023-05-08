@@ -81,8 +81,8 @@
 						{% for appointment in appointments %}
 						<tr>
 							<td>{{ appointment[1] }}</td>
-							<td>{{ appointment[2] }}</td>
 							<td>{{ appointment[3] }}</td>
+							<td>{{ appointment[4] }}</td>
 							<td>
 								<a href="{{ url_for('modifyAppointment', appointment_id=appointment[0]) }}">Modify</a>
 								<a href="{{ url_for('deleteAppointment', appointment_id=appointment[0]) }}">Delete</a>
