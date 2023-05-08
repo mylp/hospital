@@ -71,7 +71,23 @@ class TestAppointment(unittest.TestCase):
             self.assertEqual(response.status_code, 302)
 
     def test_delete_appointment(self):
-            appointment_id = 1
+            with app.test_client() as client:
+                with client.session_transaction() as session:
+                    session['user'] = 1  # Replace 1 with the user ID you want to use
+
+            # Make a request to the modifyAppointment endpoint
+            response = self.client.post('/api/createAppointment', data=dict(
+                inputDate='2022-02-02',
+                inputTime='10:00',
+                physician='p p',
+                patient='2',
+                inputReason='test'
+            ))
+            self.assertEqual(response.status_code, 302)
+
+            # Get the ID of the new appointment
+            appointment_id = int(response.headers.get('Location').split('=')[1])
+
             response = self.client.post(f'/api/deleteAppointment?appointment_id={appointment_id}')
             self.assertEqual(response.status_code, 302)
             self.assertEqual(response.location, '/appointment') 

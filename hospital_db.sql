@@ -372,6 +372,7 @@ BEGIN
     (appointment_date, idpatient, idphysician, `description`)
     VALUES
     (`date`, patient_id, physician_id, reason);
+    SELECT LAST_INSERT_ID();
 END$$
 
 DELIMITER ;
