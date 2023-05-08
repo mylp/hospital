@@ -145,6 +145,7 @@ CREATE TABLE IF NOT EXISTS `test`.`patient` (
   PRIMARY KEY (`idpatient`),
   UNIQUE INDEX `idpatient` (`idpatient` ASC) VISIBLE)
 ENGINE = InnoDB
+AUTO_INCREMENT = 2
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -430,6 +431,7 @@ BEGIN
 END$$
 
 DELIMITER ;
+
 -- -----------------------------------------------------
 -- procedure sp_createNurse
 -- -----------------------------------------------------
@@ -584,10 +586,11 @@ DELIMITER ;
 
 DELIMITER $$
 USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_deleteAppointment`(IN appID INT)
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_deleteAppointment`(
+    IN appointmentID INT
+)
 BEGIN
-	DELETE FROM appointment
-    WHERE idappointment = appID;
+    DELETE FROM appointment WHERE idappointment = appointmentID;
 END$$
 
 DELIMITER ;
@@ -639,7 +642,7 @@ DELIMITER $$
 USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_findOwnPatient`(
     IN p_physicianid INT
-
+    
 )
 BEGIN
 	SELECT idpatient from appointment where idphysician=p_physicianid;
@@ -655,7 +658,8 @@ DELIMITER $$
 USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getAppointments`(IN userID INT)
 BEGIN
-	SELECT idappointment, appointment_date, idphysician, `description` FROM appointment;
+	SELECT * from appointment
+    WHERE idpatient = userID;
 END$$
 
 DELIMITER ;
@@ -687,7 +691,7 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
--- procedure sp_getInvoices
+-- procedure sp_getPhysicianAppointments
 -- -----------------------------------------------------
 
 DELIMITER $$
@@ -876,15 +880,12 @@ DELIMITER ;
 DELIMITER $$
 USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_modifyAppointment`(
-	IN appID INT,
-    IN appDate DATETIME,
-    IN physID INT,
-    IN descr MEDIUMTEXT
+	IN _appointmentID INT, IN _date DATETIME, IN _physID INT, IN reason MEDIUMTEXT
 )
 BEGIN
 	UPDATE appointment
-    SET appointment_date = appDate, idphysician = physID, `description` = descr
-    WHERE idappointment = appID;
+    SET appointment_date = _date, idphysician = _physID, `description` = reason
+    WHERE idappointment = _appointmentID;
 END$$
 
 DELIMITER ;
