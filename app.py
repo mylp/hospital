@@ -904,14 +904,14 @@ def assignBed():
         return json.dumps({'html': '<span>Enter the required fields</span>'})
 
 @app.route('/createBill')
-def showCreateBill(patients=[], rates=[], errors=[], success='', chosenPat="--", chosenItems={}, default={}):
+def showCreateBill(patients=[], rates=[], errors=[], success='', chosenPat="", chosenItems={}, default={}):
     conn = mysql.connect()
     cursor = conn.cursor()
     cursor.callproc('sp_getBillRates')
     rates = cursor.fetchall()
     conn.commit()
     cursor.callproc('sp_getPatientsFromAppt')
-    patients = ['--']
+    patients = ['--choose a patient--']
     patients.extend([el[1]+' '+el[2]+', '+str(el[0]) for el in cursor.fetchall()])
     l = ['--choose billing item--']
     l.extend([desc+", $"+str(charge) for desc, charge in rates])
@@ -923,7 +923,7 @@ def createBillAdmin():
     errors = []
     invoiceCount = int(request.form["total_chq"])
     patient = request.form['patient']
-    if patient == "--":
+    if patient == "--choose a patient--":
         errors.append("You need to select a patient.")
 
     invoiceValues = {}

@@ -29,6 +29,21 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
+-- -----------------------------------------------------
+-- Table `test`.`insurance`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `test`.`insurance` (
+  `insuranceID` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(45) NOT NULL,
+  discount FLOAT NOT NULL,
+  copay INT NOT NULL,
+  PRIMARY KEY (`insuranceID`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+insert into insurance values (1, 'united', .20, 10);
+insert into insurance values (2, 'bcbs', .10, 20);
 
 -- -----------------------------------------------------
 -- Table `test`.`appointment`
@@ -834,7 +849,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_updateStatementBalance`(
 )
 BEGIN
 	update statement
-	set balance_due = (balance_due - amount), paid = (paid + amount)
+	set balance_due = balance_due - amount
     WHERE idpatient = patientid and idstatement=statementid;
 END$$
 DELIMITER ;
@@ -859,11 +874,12 @@ DELIMITER ;
 -- Table `test`.`paymentHistory`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `test`.`paymentHistory` (
+    phid INT NOT NULL AUTO_INCREMENT,
   `date` datetime not null,
   `amount` INT NOT NULL,
   `userID` varchar(45) NOT NULL,
   `statementID` int not null,
-  PRIMARY KEY (`date`))
+  PRIMARY KEY (`phid`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
@@ -1040,6 +1056,19 @@ USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getPatientInsuranceInfo`(IN pid INT)
 BEGIN
 	select insurance.name, insurance.discount, insurance.copay from user inner join insurance where user.iduser = pid and user.insurance = insurance.name;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_getBillRates
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getBillRates`()
+BEGIN
+	select description, charge from billRates;
 END$$
 
 DELIMITER ;
