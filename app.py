@@ -4,12 +4,9 @@ from flask import Flask, render_template, request, json, session, redirect, url_
 from werkzeug.security import generate_password_hash, check_password_hash
 from flaskext.mysql import MySQL
 import datetime
-import smtplib
 import ssl
 
-import os
 import smtplib
-import imghdr
 from email.message import EmailMessage
 
 app = Flask(__name__)
@@ -206,7 +203,7 @@ def getPhysicianSchedulesById():
         name = [k for k, v in getPhysiciansByNameAndId().items()
                 if v == tup[0]][0]
         individual.append(name)
-        for time in tup[8:]:
+        for time in tup[1:]:
             individual.append(time)
         formatted.append(individual)
 
@@ -372,31 +369,41 @@ def physicianHome():
 
 
 @app.route('/account')
-def account():
-    userHeadings=("First Name", "Last Name","Street", "City", "State", "Zip", "Phone Number", "DOB", "Sex", "Email")
+def account(errors=[], success=''):
     conn = mysql.connect()
     cursor = conn.cursor()
     id = session['user']
     cursor.callproc('sp_getUser', (id,))
     data = cursor.fetchall()
-    return render_template('account.html', headings=userHeadings,data=data[0][3:-1])
+    return render_template('account.html', errors=errors, success=success)
     
 
 
 @app.route('/api/changePassword', methods=['POST'])
 def changePassword():
+    errors=[]
     _username = session['user']
     _password = request.form['inputPassword']
     _newPassword = request.form['inputConfirmPW']
 
     conn = mysql.connect()
     cursor = conn.cursor()
+
     if _password == _newPassword:
-        password = generate_password_hash(_password)
-        cursor.callproc('sp_changePassword', (_username, password))
+        numCapitals = sum([1 for ch in _password if ch.isupper()])
+        numNumbers = sum([1 for ch in _password if ch.isdigit()])
+        specialChar = sum([1 for ch in _password if ch in "!?$"])
+        if numCapitals == 0 or numNumbers == 0 or specialChar == 0 or len(_password) < 8:
+            errors.append("Password must contain at least: 1 number, 1 capital letter, 1 special character (!?$) and be at least 8 characters long")
+        else:
+            password = generate_password_hash(_password)
+            cursor.callproc('sp_changePassword', (_username, password))
+            conn.commit()
+            return account([],'Password changed successfully!')
     else:
-        return json.dumps({'error': 'Passwords do not match!'})
-    data = cursor.fetchall()
+        errors.append("Passwords do not match!")
+
+    return account(errors, '')
 
     return render_template("account.html", data=data)
 
@@ -518,7 +525,7 @@ def validateLogin():
             else:
                 return redirect('/adminHome')
         else:
-            return showLogin('Wrong Email address or Password')
+            return showLogin('Wrong Username or Password')
 
 @app.route('/api/validateLoginBilling', methods=['POST', 'GET'])
 def validateLoginBilling():
@@ -536,7 +543,7 @@ def validateLoginBilling():
             if data[0][13] == "user":
                 return redirect('/billing')
         else:
-            return showLogin('Wrong Email address or Password')
+            return showLogin('Wrong Username or Password')
 
 userHeadings = ("First Name", "Last Name", "Street", "City",
                 "State", "Zip", "Phone Number", "DOB", "Sex", "Email")
