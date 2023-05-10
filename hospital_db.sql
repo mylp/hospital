@@ -61,6 +61,19 @@ AUTO_INCREMENT = 13
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
+-- -----------------------------------------------------
+-- Table `test`.`appointment`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `test`.`afterVisit` (
+ `id` INT NOT NULL AUTO_INCREMENT,
+  `idappointment` INT NOT NULL ,
+  `summary` MEDIUMTEXT NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `id` (`id` ASC) VISIBLE)
+ENGINE = InnoDB
+AUTO_INCREMENT = 4
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
 -- -----------------------------------------------------
 -- Table `test`.`bed`
@@ -321,7 +334,21 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
--- procedure sp_assignBed
+-- procedure sp_addSummary
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addSummary`(p_idappointment INT,p_summary MEDIUMTEXT)
+BEGIN
+insert into bed(idappointment,summary )
+values(p_idappointment, p_summary);
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_getContactUsMessages
 -- -----------------------------------------------------
 
 DELIMITER $$
@@ -761,9 +788,75 @@ DELIMITER ;
 
 DELIMITER $$
 USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getPatientsFromAppt`()
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_assignBed`(In p_idbed INT, IN p_idpatient INT,IN p_idphysician INT)
 BEGIN
-	SELECT user.iduser, user.first_name, user.last_name FROM appointment INNER JOIN user  on appointment.idpatient = user.iduser where appointment.appointment_date < now();
+      UPDATE bed SET `idpatient`=p_idpatient WHERE idbed = p_idbed AND EXISTS (select idpatient,idphysician from appointment where p_idpatient=idpatient AND p_idphysician=idphysician);
+    
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_assignBedAdmin
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_assignBedAdnin`(In p_idbed INT, IN p_idpatient INT)
+BEGIN
+      UPDATE bed SET `idpatient`=p_idpatient WHERE idbed = p_idbed AND EXISTS (select idpatient from user where iduser=p_idpatient);
+    
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure sp_dischargePatient
+-- -----------------------------------------------------
+
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_dischargePatient`(IN patient_id INT, IN physician_id INT,IN p_summary MEDIUMTEXT)
+BEGIN
+    DECLARE patient_exists INT DEFAULT 0;
+    DECLARE appointment_exists INT DEFAULT 0;
+    DECLARE appointment_id INT DEFAULT 0;
+    
+	
+    
+    -- check if patient exists in beds table
+    SELECT COUNT(*) INTO patient_exists FROM bed WHERE idpatient = patient_id;
+    
+    IF patient_exists > 0 THEN
+        -- check if patient exists in appointments table for the given physician
+        SELECT COUNT(*) INTO appointment_exists FROM appointment WHERE idpatient = patient_id AND idphysician = physician_id;
+        
+        IF appointment_exists > 0 THEN
+            -- update idbed to 0 for the given patient
+            UPDATE bed SET idpatient = 0 WHERE idpatient = patient_id;
+            select idappointment into appointment_id from appointment where idpatient=patient_id AND idphysician=physician_id;
+            insert into afterVisit(idappointment,summary ) values(appointment_id, p_summary);
+            SELECT CONCAT('Bed updated for patient with id ', patient_id) AS message;
+        ELSE
+            SELECT CONCAT('Patient with id ', patient_id, ' does not have an appointment with physician with id ', physician_id) AS message;
+        END IF;
+    ELSE
+        SELECT CONCAT('Patient with id ', patient_id, ' does not exist in beds table.') AS message;
+    END IF;
+END$$
+
+DELIMITER ;
+-- -----------------------------------------------------
+-- procedure sp_modifyBedLocation
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_modifyBedLocation`(In p_idbed INT,  IN p_room_number VARCHAR(45))
+BEGIN
+   UPDATE bed SET `room_number`=p_room_number WHERE idbed = p_idbed;
+    
 END$$
 
 DELIMITER ;
@@ -988,16 +1081,19 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
--- procedure sp_getCUMessageID
+-- procedure sp_getPatientEmail
 -- -----------------------------------------------------
+
 DELIMITER $$
 USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getCUMessageID`(
-	IN fname VARCHAR(45), IN lname VARCHAR(45), IN email VARCHAR(45), IN message MEDIUMTEXT
-)
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getPatientEmail`(IN p_idpatient INT, IN p_idphysician INT)
 BEGIN
-	select messageID from contact_us_messages where first_name=fname and last_name=lname and email=email and message= message;
+    SELECT email FROM `user` WHERE `user`.iduser = p_idpatient AND
+    EXISTS (select idpatient,idphysician from appointment where p_idpatient=idpatient 
+        AND p_idphysician=idphysician);
 END$$
+
+DELIMITER ;
 
 DELIMITER ;
 

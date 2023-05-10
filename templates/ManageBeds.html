@@ -142,6 +142,86 @@
 </div>
 
 
+
+
+ 
+<form id="form-deleteBed" action="/api/assignBedAdmin" method="POST">      
+  <!-- Trigger the modal with delete button -->
+  <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#addPatientToBed">Add Patient to Bed</button>
+
+  <!-- Delete Modal -->
+  <div class="modal fade" id="addPatientToBed" role="dialog">
+    <div class="modal-dialog">
+    
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Add Patient to Bed</h4>
+        </div>
+        <div class="modal-body">
+            <label for="idBed" class="sr-only">Bed Id</label>
+            <input type="idBed" name="idBed" id="idBed" class="form-control" placeholder="Bed Id" required
+                autofocus />
+
+            <label for="idPatient" class="sr-only">Patient Id</label>
+            <input type="idPatient" name="idPatient" id="idPatient" class="form-control" placeholder="Patient Id" required
+            autofocus />     
+            <button class="btn btn-lg btn-primary btn-block" type="submit">
+                Submit
+            </button>
+
+    </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+   
+      
+    </div>
+  </div>
+</form> 
+</div>
+
+<br>
+<form id="form-modifyBedLocation" action="/api/modifyBedLocation" method="POST">      
+  <!-- Trigger the modal with delete button -->
+  <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#modifyBedLocation">Modify Bed Location</button>
+
+  <!-- Delete Modal -->
+  <div class="modal fade" id="modifyBedLocation" role="dialog">
+    <div class="modal-dialog">
+    
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Modify Bed Location</h4>
+        </div>
+        <div class="modal-body">
+            <label for="idBed" class="sr-only">Bed Id</label>
+            <input type="idBed" name="idBed" id="idBed" class="form-control" placeholder="Bed Id" required
+                autofocus />
+
+            <label for="idroom" class="sr-only">Room Id</label>
+            <input type="idroom" name="idroom" id="idroom" class="form-control" placeholder="idroom" required
+            autofocus />     
+            <button class="btn btn-lg btn-primary btn-block" type="submit">
+                Submit
+            </button>
+
+    </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+   
+      
+    </div>
+  </div>
+</form> 
+</div>
+
   </body>
 
 </html>

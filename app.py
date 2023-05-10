@@ -3,6 +3,14 @@ import re
 from flask import Flask, render_template, request, json, session, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from flaskext.mysql import MySQL
+import datetime
+import smtplib
+import ssl
+
+import os
+import smtplib
+import imghdr
+from email.message import EmailMessage
 
 app = Flask(__name__)
 
@@ -359,12 +367,20 @@ def createAdmin():
 
 @app.route('/physicianHome')
 def physicianHome():
-    return render_template('physicianHome.html')
+    
+    return render_template('PhysicianHome.html')
 
 
 @app.route('/account')
 def account():
-    return render_template('account.html')
+    userHeadings=("First Name", "Last Name","Street", "City", "State", "Zip", "Phone Number", "DOB", "Sex", "Email")
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    id = session['user']
+    cursor.callproc('sp_getUser', (id,))
+    data = cursor.fetchall()
+    return render_template('account.html', headings=userHeadings,data=data[0][3:-1])
+    
 
 
 @app.route('/api/changePassword', methods=['POST'])
@@ -885,83 +901,114 @@ def adddeleteBed():
 
 @app.route('/api/assignBed', methods=['POST'])
 def assignBed():
-    idbed = request.form['idBed']
-    idpatient = request.form['idpatient']
-
-    if all((idbed, idpatient)):
+    idbed= request.form['idBed']
+    idpatient=request.form['idpatient']
+    id=session['user']
+    
+    if all( (idbed,idpatient,id)):
 
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.callproc('sp_assignBed', (idbed, idpatient))
+        cursor.callproc('sp_assignBed', (idbed,idpatient,id))
         data = cursor.fetchall()
 
         if len(data) == 0:
             conn.commit()
             return redirect('/seePhysSchedule')
         else:
+            return json.dumps({'error': str(data)})
+    else:
+        return json.dumps({'html': '<span>Enter the required fields</span>'})
+
+@app.route('/api/dischargePatient', methods=['POST'])
+def dischargePatient():
+    
+    idpatient=request.form['idpatient']
+    id=session['user']
+    summ=request.form['idsummary']
+    print()
+    if all( (idpatient,id)):
+
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.callproc('sp_dischargePatient', (int(idpatient),id,summ,))
+        data = cursor.fetchall()
+
+        if len(data) != 0:
+            conn.commit()
+            return redirect('/physicianHome')
+        else:
             return json.dumps({'error': str(data[0])})
     else:
         return json.dumps({'html': '<span>Enter the required fields</span>'})
 
-@app.route('/createBill')
-def showCreateBill(patients=[], rates=[], errors=[], success='', chosenPat="", chosenItems={}, default={}):
-    conn = mysql.connect()
-    cursor = conn.cursor()
-    cursor.callproc('sp_getBillRates')
-    rates = cursor.fetchall()
-    conn.commit()
-    cursor.callproc('sp_getPatientsFromAppt')
-    patients = ['--choose a patient--']
-    patients.extend([el[1]+' '+el[2]+', '+str(el[0]) for el in cursor.fetchall()])
-    l = ['--choose billing item--']
-    l.extend([desc+", $"+str(charge) for desc, charge in rates])
-    return render_template('createBills.html',patients=patients, rates=l, errors=errors, success=success, cp=chosenPat, items=chosenItems, default={})
 
-@app.route('/api/createBill', methods=["POST"])
-def createBillAdmin():
-    # get value of hidden var to determine num of invoice
-    errors = []
-    invoiceCount = int(request.form["total_chq"])
-    patient = request.form['patient']
-    if patient == "--choose a patient--":
-        errors.append("You need to select a patient.")
 
-    invoiceValues = {}
-    default = {}
-    for i in range(1, invoiceCount+1):
-        invoice = request.form["new_"+str(i)]
-        if i == 1:
-            default[i] = invoice
-        invoiceValues[str(i)]=invoice
-        if invoice == "--choose billing item--":
-            errors.append("Select a billing item")
+@app.route('/api/assignBedAdmin', methods=['POST'])
+def assignBedAdmin():
+    idbed= request.form['idBed']
+    idpatient=request.form['idPatient']
 
-    if errors:
-        return showCreateBill([patient], [], errors, '', request.form['patient'], invoiceValues, default)
-    else:
-        pid = int(patient[patient.index(',')+1:].strip())
+    if all((idbed, idpatient)):
+
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.callproc('sp_getBillRates')
-        rates = cursor.fetchall()
-        cursor.callproc('sp_createStatement',(pid, 0, '06/30/2023',))
-        statementID = cursor.fetchall()
-        if len(statementID) == 1:
-            # get patient insurance info
-            cursor.callproc('sp_getPatientInsuranceInfo', (pid,))
-            insuranceInfo = cursor.fetchall()
-            name, discount, copay = insuranceInfo[0][0], float(insuranceInfo[0][1]), int(insuranceInfo[0][2])
-            if len(insuranceInfo) > 0:
-                for i in range(1,invoiceCount+1):
-                    invoice = request.form['new_'+str(i)]
-                    desc = invoice[:invoice.index(',')]
-                    charge = int(invoice[invoice.index('$')+1:].strip())
-                    cursor.callproc('sp_createInvoice', (statementID[0], charge, int(charge*discount), charge-(int(charge*discount)), desc))
-                    cursor.fetchall()
-                    conn.commit()
-                # notif to patient
-            return showCreateBill([],[],[],'Bill created and patient has been notified!', "", [])
+        cursor.callproc('sp_assignBedAdnin', (idbed,idpatient))
+        data = cursor.fetchall()
+        print(data)
+        if len(data) == 0:
+            conn.commit()
+            return redirect('/ManageBeds')
+        else:
+            return json.dumps({'error': str(data[0])})
+    else:
+        return json.dumps({'html': '<span>Enter the required fields</span>'})
 
+@app.route('/api/modifyBedLocation', methods=['POST'])
+def modifyBedLocation():
+    idbed= request.form['idBed']
+    idroom=request.form['idroom']
+
+    if all( (idbed,idroom)):
+
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.callproc('sp_modifyBedLocation', (idbed,idroom))
+        data = cursor.fetchall()
+
+        if len(data) == 0:
+            conn.commit()
+            return redirect('/ManageBeds')
+        else:
+            return json.dumps({'error': str(data[0])})
+    else:
+        return json.dumps({'html': '<span>Enter the required fields</span>'})
+
+    
+    
+@app.route('/api/billNotification', methods=['POST'])
+def billNotification():
+    idpatient=request.form['idpatient']
+    idPhys=session['user']
+
+    if all( (idpatient,idPhys)):
+
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.callproc('sp_getPatientEmail', (idpatient,idPhys))
+        data = cursor.fetchall()
+        print(data[0][0]);
+        patientEmail=data[0][0];
+        print(type(data[0][0]))
+        
+        msgAlert(patientEmail);
+        if len(data) != 0:
+            conn.commit()
+            return redirect('/physicianHome')
+        else:
+            return json.dumps({'error': str(data[0])})
+    else:
+        return json.dumps({'html': '<span>Enter the required fields</span>'})
 
 # for testing purposes only
 ###############################
@@ -1037,8 +1084,53 @@ def deleteCUMessage(fname, lname, email, message):
     conn.commit()
 
 ###############################
+def msgAlert(email_to):
+        """Send the text to the email address associated with the entered number."""
+        
+        now =datetime.datetime.now()
+        timeStamp= now.strftime("%I:%M %p %m/%d/%y")
 
+        message="You have recieved an email from R.A.M hospital "+timeStamp+" Check your homepage"
+        
+        email_from = "rupanti.engr@gmail.com"
+        pswd = "ooulipvpkpqhoysd"
+        
+        # Setup port number and servr name
 
+        smtp_port = 587                 # Standard secure SMTP port
+        smtp_server = "smtp.gmail.com"  # Google SMTP Server
+        
+        msg = EmailMessage()
+        msg['Subject'] = 'Notification from R.A.M Hospital!'
+        msg['From'] = email_from
+        msg['To'] = email_to
+
+        # Create context
+        simple_email_context = ssl.create_default_context()
+        msg.set_content(message)
+
+        try:
+            # Connect to the server
+            print("Connecting to server...")
+            TIE_server = smtplib.SMTP(smtp_server, smtp_port)
+            TIE_server.starttls(context=simple_email_context)
+            TIE_server.login(email_from, pswd)
+            print("Connected to server :-)")
+            
+            # Send the actual email
+            print(message)
+            print(f"Sending email to - {email_to}")
+            TIE_server.send_message(msg)
+            print(f"Email successfully sent to - {email_to}")
+
+        # If there's an error, print it out
+        except Exception as e:
+            print(e)
+
+        # Close the port
+        finally:
+            TIE_server.quit()
 if __name__ == '__main__':
     connect_to_db(app)
+    
     app.run(debug=True)
