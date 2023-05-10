@@ -902,14 +902,13 @@ def adddeleteBed():
 @app.route('/api/assignBed', methods=['POST'])
 def assignBed():
     idbed= request.form['idBed']
-    idpatient=request.form['idpatient']
     id=session['user']
     
-    if all( (idbed,idpatient,id)):
+    if all( (idbed,id)):
 
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.callproc('sp_assignBed', (idbed,idpatient,id))
+        cursor.callproc('sp_assignBed', (idbed,id))
         data = cursor.fetchall()
 
         if len(data) == 0:
@@ -1009,6 +1008,65 @@ def billNotification():
             return json.dumps({'error': str(data[0])})
     else:
         return json.dumps({'html': '<span>Enter the required fields</span>'})
+
+@app.route('/createBill')
+def showCreateBill(patients=[], rates=[], errors=[], success='', chosenPat="", chosenItems={}, default={}):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_getBillRates')
+    rates = cursor.fetchall()
+    conn.commit()
+    cursor.callproc('sp_getPatientsFromAppt')
+    patients = ['--choose a patient--']
+    patients.extend([el[1]+' '+el[2]+', '+str(el[0]) for el in cursor.fetchall()])
+    l = ['--choose billing item--']
+    l.extend([desc+", $"+str(charge) for desc, charge in rates])
+    return render_template('createBills.html',patients=patients, rates=l, errors=errors, success=success, cp=chosenPat, items=chosenItems, default={})
+
+@app.route('/api/createBill', methods=["POST"])
+def createBillAdmin():
+    # get value of hidden var to determine num of invoice
+    errors = []
+    invoiceCount = int(request.form["total_chq"])
+    patient = request.form['patient']
+    if patient == "--choose a patient--":
+        errors.append("You need to select a patient.")
+
+    invoiceValues = {}
+    default = {}
+    for i in range(1, invoiceCount+1):
+        invoice = request.form["new_"+str(i)]
+        if i == 1:
+            default[i] = invoice
+        invoiceValues[str(i)]=invoice
+        if invoice == "--choose billing item--":
+            errors.append("Select a billing item")
+
+    if errors:
+        return showCreateBill([patient], [], errors, '', request.form['patient'], invoiceValues, default)
+    else:
+        pid = int(patient[patient.index(',')+1:].strip())
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.callproc('sp_getBillRates')
+        rates = cursor.fetchall()
+        cursor.callproc('sp_createStatement',(pid, 0, '06/30/2023',))
+        statementID = cursor.fetchall()
+        if len(statementID) == 1:
+            # get patient insurance info
+            cursor.callproc('sp_getPatientInsuranceInfo', (pid,))
+            insuranceInfo = cursor.fetchall()
+            name, discount, copay = insuranceInfo[0][0], float(insuranceInfo[0][1]), int(insuranceInfo[0][2])
+            if len(insuranceInfo) > 0:
+                for i in range(1,invoiceCount+1):
+                    invoice = request.form['new_'+str(i)]
+                    desc = invoice[:invoice.index(',')]
+                    charge = int(invoice[invoice.index('$')+1:].strip())
+                    cursor.callproc('sp_createInvoice', (statementID[0], charge, int(charge*discount), charge-(int(charge*discount)), desc))
+                    cursor.fetchall()
+                    conn.commit()
+                # notif to patient
+            return showCreateBill([],[],[],'Bill created and patient has been notified!', "", [])
 
 # for testing purposes only
 ###############################
