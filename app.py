@@ -1,4 +1,6 @@
-from flask import Flask, render_template, request, json, session, redirect
+import re
+
+from flask import Flask, render_template, request, json, session, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from flaskext.mysql import MySQL
 import datetime
@@ -12,44 +14,57 @@ from email.message import EmailMessage
 
 app = Flask(__name__)
 
+
+import logging
+app.logger.setLevel(logging.DEBUG)
+
 mysql = MySQL()
+
 
 def connect_to_db(app):
     app.config['MYSQL_DATABASE_USER'] = 'root'
-    app.config['MYSQL_DATABASE_PASSWORD'] = 'root3069'
+    app.config['MYSQL_DATABASE_PASSWORD'] = 'Gooster1225!2'
     app.config['MYSQL_DATABASE_DB'] = 'test'
     app.config['MYSQL_DATABASE_HOST'] = 'localhost'
     app.config['SECRET_KEY'] = '1234567890'
+    app.config['DEBUG'] = True
     mysql.app = app
     mysql.init_app(app)
 
 
 @app.route('/')
-def main():
-    return render_template('homepage.html')
+def main(first='', last='', email='', message='', error='', success=''):
+    return render_template('homepage.html', first=first, last=last, email=email, message=message, error=error, success=success)
 
 
 @app.route('/signup')
-def showSignUp():
-    return render_template('signup.html')
+def showSignUp(username='', password='', first='', last='', street='', city='', state='', zip='', phone='', dob='', sex='', email='', errors=[]):
+    return render_template('signup.html', username=username, password=password, first=first, last=last, street=street, city=city, state=state, zip=zip, phone=phone, dob=dob, sex=sex, email=email, errors=errors)
 
 
 @app.route('/api/contacted', methods=['POST'])
 def showContacted():
+    error=''
     _fname = request.form['fname']
     _lname = request.form['lname']
     _email = request.form['email']
     _message = request.form['message']
 
-    conn = mysql.connect()
-    cursor = conn.cursor()
-    cursor.callproc('sp_addContactUsMessage', (_fname, _lname, _email, _message))
-    data = cursor.fetchall()
-    if len(data) == 0:
-        conn.commit()
-        return render_template('/contacted.html')
+    if not bool(re.match(r"^\S+@\S+\.\S+$", _email)):
+        error="Email not in correct example@email.com format"
+
+    if error != '':
+        return main(_fname, _lname, _email, _message, error, '')
     else:
-        return json.dumps({'error': str(data[0])})
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.callproc('sp_addContactUsMessage',
+                        (_fname, _lname, _email, _message))
+        data = cursor.fetchall()
+        if len(data) == 0:
+            conn.commit()
+            return main('','','','','','Message sent successfully!')
+
 
 
 @app.route('/contactUsMessageInbox')
@@ -74,16 +89,17 @@ def getCUMessages():
 
 
 @app.route('/setHours')
-def showSetHours():
+def showSetHours(errors=[], mon='', tue='', wed='', thurs='', fri='', sat='', sun='', physician='choose'):
     days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     p_names = getPhysiciansByNameAndId().keys()
     schedules = getPhysicianSchedules()
-    return render_template('setHours.html', days=days, p_names=p_names, schedules=schedules)
+    return render_template('setHours.html', days=days, p_names=p_names, schedules=schedules, errors=errors, mon=mon, tue=tue, wed=wed, thurs=thurs, fri=fri, sat=sat, sun=sun, physician=physician)
 
 
 @app.route('/ownSchedule')
 def ownSchedule():
-    days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    days = ["Monday", "Tuesday", "Wednesday",
+            "Thursday", "Friday", "Saturday", "Sunday"]
     p_names = getPhysiciansByNameAndId().keys()
     schedules = getPhysicianSchedulesById()
     return render_template('ownSchedule.html', days=days, p_names=p_names, schedules=schedules)
@@ -91,50 +107,37 @@ def ownSchedule():
 
 @app.route('/api/setHours', methods=['POST'])
 def setHours():
-    _mon = request.form['Monday']
-    _tue = request.form['Tuesday']
-    _wed = request.form['Wednesday']
-    _thurs = request.form['Thursday']
-    _fri = request.form['Friday']
-    _sat = request.form['Saturday']
-    _sun = request.form['Sunday']
-    _pid = getPhysiciansByIdUsingName(request.form["physician"])
-    _monTL = ''
-    _tueTL = ''
-    _wedTL = ''
-    _thursTL = ''
-    _friTL = ''
-    _satTL = ''
-    _sunTL = ''
+    errors = []
+    days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    times = [request.form["MondayTimes"], request.form["TuesdayTimes"], request.form["WednesdayTimes"],
+             request.form["ThursdayTimes"], request.form["FridayTimes"], request.form["SaturdayTimes"],
+             request.form["SundayTimes"]]
+    for i in range(7):
+        if times[i] != '':
+            if not bool(re.match(
+                    r"[0|1]\d:[012345]\d\s((PM)|(AM))-[0|1]\d:[012345]\d\s(P|A)M(,\s[0|1]\d:[012345]\d\s(P|A)M-[0|1]\d:[012345]\d\s(P|A)M)*",
+                    times[i])):
+                errors.append("Time format is incorrect for " + days[i])
 
-    if request.form["MondayTimes"] is not None and _mon == "1":
-        _monTL = request.form["MondayTimes"]
-    if request.form["TuesdayTimes"] is not None and _tue == "1":
-        _tueTL = request.form["TuesdayTimes"]
-    if request.form["WednesdayTimes"] is not None and _wed == "1":
-        _wedTL = request.form["WednesdayTimes"]
-    if request.form["ThursdayTimes"] is not None and _thurs == "1":
-        _thursTL = request.form["ThursdayTimes"]
-    if request.form["FridayTimes"] is not None and _fri == "1":
-        _friTL = request.form["FridayTimes"]
-    if request.form["SaturdayTimes"] is not None and _sat == "1":
-        _satTL = request.form["SaturdayTimes"]
-    if request.form["SundayTimes"] is not None and _sun == "1":
-        _sunTL = request.form["SundayTimes"]
-
-    conn = mysql.connect()
-    cursor = conn.cursor()
-    cursor.callproc('sp_setHours',
-                    (
-                        _pid, int(_mon), int(_tue), int(_wed), int(_thurs), int(_fri), int(_sat), int(_sun), _monTL,
-                        _tueTL, _wedTL, _thursTL, _friTL, _satTL, _sunTL))
-    data = cursor.fetchall()
-    if len(data) == 0:
-        conn.commit()
-        json.dumps({'message': 'Hours add successfully!'})
-        return redirect('/setHours')
+    if len(errors) != 0 or request.form["physician"] == 'choose':
+        return showSetHours(errors, times[0], times[1], times[2], times[3], times[4], times[5], times[6], request.form["physician"])
     else:
-        return json.dumps({'error': str(data[0])})
+
+        _pid = getPhysiciansByIdUsingName(request.form["physician"])
+
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.callproc('sp_setHours',
+                        (
+                            int(_pid), times[0],
+                            times[1], times[2], times[3], times[4], times[5], times[6]))
+        data = cursor.fetchall()
+        if len(data) == 0:
+            conn.commit()
+            json.dumps({'message': 'Hours add successfully!'})
+            return redirect('/setHours')
+        else:
+            return json.dumps({'error': str(data[0])})
 
 
 def getPhysiciansByNameAndId():
@@ -170,19 +173,28 @@ def getPhysicianSchedules():
     formatted = []
     for tup in lst:
         individual = []
-        name = [k for k, v in getPhysiciansByNameAndId().items() if v == tup[0]][0]
+        name = [k for k, v in getPhysiciansByNameAndId().items()
+                if v == tup[0]][0]
         individual.append(name)
-        for time in tup[8:]:
+        for time in tup[1:]:
             individual.append(time)
         formatted.append(individual)
 
     return formatted
 
-def getPhysicianSchedulesById():
 
+def getPhysicianNameByID(id):
     conn = mysql.connect()
     cursor = conn.cursor()
-    cursor.callproc('sp_getPhysicianSchedulesById',(session['user'],))
+    cursor.callproc('sp_getPhysicianNameByID', (id,))
+    data = cursor.fetchall()
+    return data[0][0] + " " + data[0][1]
+
+
+def getPhysicianSchedulesById():
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_getPhysicianSchedulesById', (session['user'],))
     data = cursor.fetchall()
     if len(data) > 0:
         conn.commit()
@@ -191,7 +203,8 @@ def getPhysicianSchedulesById():
     formatted = []
     for tup in lst:
         individual = []
-        name = [k for k, v in getPhysiciansByNameAndId().items() if v == tup[0]][0]
+        name = [k for k, v in getPhysiciansByNameAndId().items()
+                if v == tup[0]][0]
         individual.append(name)
         for time in tup[8:]:
             individual.append(time)
@@ -200,42 +213,137 @@ def getPhysicianSchedulesById():
     return formatted
 
 
-@app.route('/appointment')
-def showAppointment():
+def getAppointments():
     conn = mysql.connect()
     cursor = conn.cursor()
     cursor.callproc('sp_getAppointments', (session['user'],))
     appointments = cursor.fetchall()
     formatted = []
     for appointment in appointments:
-        individual = []
-        individual.append(appointment[0]) # Appointment ID (This should be hidden
-        individual.append(str(appointment[1])) # Date)
-        individual.append(appointment[2]) # Physician ID (This should display the physician name)
+        individual = [appointment[0], appointment[1], appointment[2], appointment[3], appointment[4]]
         formatted.append(individual)
-    return render_template('appointment.html', appointments=formatted)
+    return formatted
 
+
+def getStatements():
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_getStatements', (session['user'],))
+    statements = cursor.fetchall()
+    return statements
+
+@app.route('/api/changeInsurance', methods=['GET','POST'])
+def changeInsurance():
+    try:
+        _insurance = request.form['inputInsurance']
+    except:
+        return render_template('account.html', error='Please enter an insurance provider')
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_changeInsurance', (session['user'], _insurance))
+    data = cursor.fetchall()
+    if len(data) == 0:
+        conn.commit()
+        return redirect(url_for('account', insurance=_insurance))
+    else:
+        return json.dumps({'error': str(data[0])})
+
+@app.route('/billing')
+def showBilling():
+    user_statements = getStatements()
+    unpaid = []
+    paid = []
+    for statement in user_statements:
+        if not statement[3]:  # Unpaid
+            unpaid.append(statement)
+        else:
+            paid.append(statement)
+    return render_template('billing.html', unpaid=unpaid, paid=paid)
+
+
+@app.route('/showStatement', methods=['GET','POST'])
+def showStatement(errors=[], payment=0, statementid='', success=''):
+    if statementid == '':
+        statementid = request.args.get(('statement_id'))
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_getInvoices', (statementid,))
+    invoices = cursor.fetchall()
+    outstanding_balance = None
+    statements = getStatements()
+    cursor.callproc('sp_paymentHistory', (session["user"], statementid,))
+    history = cursor.fetchall()[::-1]
+    newHistory = [[h[1],h[2]] for h in history if h[2] > 0]
+    for s in statements:
+        if str(s[0]) == str(statementid):
+            outstanding_balance = s[2]
+    return render_template('statement.html', invoices=invoices, outBal=outstanding_balance, id=statementid, history=newHistory, errors=errors, payment=payment, success=success)
+
+@app.route('/makePayment', methods=["POST"])
+def makePayment():
+    statements = getStatements()
+    statement_id = request.form["statementID"]
+    statement_balance = None
+    for s in statements:
+        if str(s[0]) == str(statement_id):
+            statement_balance = s[2]
+    errors = []
+    payment = request.form["amount"]
+    try:
+        payment = int(payment)
+    except:
+        return showStatement(["Payment not in correct format"], payment, statement_id)
+
+    if type(payment) != int:
+        payment = 0
+    if payment <= 0:
+        errors.append("Please input a payment amount greater than 0.")
+    elif payment > statement_balance:
+        errors.append("You cannot pay more than your outstanding balance.")
+
+    if errors:
+        return showStatement(errors, payment, statement_id, '')
+    else:
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.callproc('sp_updateStatementBalance', (str(session['user']), request.form["amount"], statement_id,))
+        conn.commit()
+        return showStatement(errors, 0, statement_id,'Payment recieved successfully!')
+
+@app.route('/appointment')
+def showAppointment():
+    user_appointments = getAppointments()
+    for appointment in user_appointments:
+        appointment[3] = getPhysicianNameByID(appointment[3])
+    return render_template('appointment.html', appointments=user_appointments)
 
 
 @app.route('/createAppointment')
 def showScheduleAppointment():
     p_names = getPhysiciansByNameAndId().keys()
-    return render_template('createAppointment.html',p_names=p_names)
+    return render_template('createAppointment.html', p_names=p_names)
 
 
 @app.route('/login')
-def showLogin():
-    return render_template('login.html')
+def showLogin(error=''):
+    return render_template('login.html', error=error)
+
+
+@app.route('/loginBilling')
+def showLoginBilling(error=''):
+    return render_template('loginBilling.html', error=error)
+
 
 @app.route('/logout')
 def logout():
-    session.pop('user',None)
+    session.pop('user', None)
     return redirect('/')
 
 
 @app.route('/nurseHome')
 def nurseHome():
     return render_template('nurseHome.html')
+
 
 @app.route('/adminHome')
 def adminHome():
@@ -256,10 +364,12 @@ def createNurse():
 def createAdmin():
     return render_template('createAdmin.html')
 
+
 @app.route('/physicianHome')
 def physicianHome():
     
     return render_template('PhysicianHome.html')
+
 
 @app.route('/account')
 def account():
@@ -290,11 +400,13 @@ def changePassword():
 
     return render_template("account.html", data=data)
 
-headings=("Bed Id","Clinic Id","Room Number","Occupancy Status","Patient Id")
+
+headings = ("Bed Id", "Clinic Id", "Room Number",
+            "Occupancy Status", "Patient Id")
+
 
 @app.route('/ManageBeds')
 def ManageBeds():
-
 
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -302,11 +414,12 @@ def ManageBeds():
     cursor.callproc('sp_getBeds')
     beds = cursor.fetchall()
     print(beds)
-    return render_template('ManageBeds.html',headings=headings,beds=beds)
+    return render_template('ManageBeds.html', headings=headings, beds=beds)
+
 
 @app.route('/api/createAppointment', methods=['POST'])
 def createAppointment():
-    p_names = getPhysiciansByNameAndId().keys()
+
     _date = request.form['inputDate'] + " " + request.form['inputTime']
     _physician = getPhysiciansByIdUsingName(request.form["physician"])
     _patient = session['user']
@@ -314,54 +427,70 @@ def createAppointment():
 
     conn = mysql.connect()
     cursor = conn.cursor()
-    cursor.callproc('sp_createAppointment', (_date, _physician, _patient, _reason))
+    cursor.callproc('sp_createAppointment', (_date, int(_physician), int(_patient), _reason))
+    data = cursor.fetchall()
+
+    if len(data) == 1:
+        conn.commit()
+        return redirect('/appointment?appointment_id=' + str(data[0][0]))
+    else:
+        return json.dumps({'error': str(data[0])})
+
+
+@app.route('/api/saveAppointment', methods=['POST'])
+def saveAppointment():
+    _date = request.form['inputDate'] + " " + request.form['inputTime']
+    _physician = getPhysiciansByIdUsingName(request.form["physician"])
+    _reason = request.form['inputReason']
+    _appointmentID = request.form['inputID']
+
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_modifyAppointment',
+                    (_appointmentID, _date, _physician, _reason))
     data = cursor.fetchall()
 
     if len(data) == 0:
         conn.commit()
-        cursor.callproc('sp_getAppointments', (session['user'],))
-        appointments = cursor.fetchall()
-        formatted = []
-        for appointment in appointments:
-            individual = []
-            individual.append(appointment[0]) # Date)
-            individual.append(appointment[1]) # Physician ID (This should display the physician name)
-            individual.append(appointment[2]) # Description
-            formatted.append(individual)
-        return render_template('appointment.html', appointments=formatted)
+        return redirect('/appointment')
     else:
         return json.dumps({'error': str(data[0])})
 
-@app.route('/api/changeAppointment', methods=['POST'])
-def changeAppointment():
-    _appointmentID = request.form['inputAppointmentID']
-    conn = mysql.connect()
-    cursor = conn.cursor()
-    cursor.callproc('sp_deleteAppointment', (_appointmentID,))
-    data = cursor.fetchall()
 
-    if len(data) == 0:
-        return render_template('appointment.html')
-    else:
-        return json.dumps({'error': str(data[0])})
+@app.route('/api/modifyAppointment', methods=['GET', 'POST'])
+def modifyAppointment():
+    appointments = getAppointments()
+    
+    phys = getPhysiciansByNameAndId().keys()
+    _appointmentID = int(request.args.get('appointment_id'))
+    unselected = []
+    selected = None
+    for appointment in appointments:
+        if appointment[0] == _appointmentID:
+            selected = appointment
+        else:
+            unselected.append(appointment)
+    date = selected[1]
+    time = date.time()
+    date = date.strftime("%Y-%m-%d")
+    selected = [selected[0], date, time, selected[2], selected[3], selected[4]]
+    appointments = [appointment for appointment in appointments if appointment[0] != _appointmentID]
+    for appointment in appointments:
+        appointment[2] = getPhysicianNameByID(appointment[2])
+    selected_phys = getPhysicianNameByID(selected[4])
+    return render_template('modifyAppointment.html', appointments=unselected, p_names=phys, selected=selected, selected_phys=selected_phys)
+
 
 @app.route('/api/deleteAppointment', methods=['GET', 'POST'])
 def deleteAppointment():
-    _appointmentID = request.args.get('appointment_id')
+    _appointmentID = int(request.args.get('appointment_id'))
     conn = mysql.connect()
     cursor = conn.cursor()
     cursor.callproc('sp_deleteAppointment', (_appointmentID,))
     data = cursor.fetchall()
     if len(data) == 0:
         conn.commit()
-
-        cursor.callproc('sp_getAppointments', (session['user'],))
-        data = cursor.fetchall()
-        if len(data) > 0:
-            conn.commit()
-            return render_template('appointment.html', appointments=data)
-        else:
-            return json.dumps({'error': str(data[0])})
+        return redirect('/appointment')
     else:
         return json.dumps({'error': str(data[0])})
 
@@ -373,12 +502,12 @@ def validateLogin():
 
     con = mysql.connect()
     cursor = con.cursor()
-    cursor.callproc('sp_validateLogin',(_username,))
+    cursor.callproc('sp_validateLogin', (_username,))
     data = cursor.fetchall()
 
     if len(data) > 0:
         # definitely not safe security wise but need to be able to login in with original admin
-        if check_password_hash(str(data[0][2]),_password) or (_username =='admin' and _password=='admin'):
+        if check_password_hash(str(data[0][2]), _password) or (_username == 'admin' and _password == 'admin'):
             session['user'] = data[0][0]
             if data[0][13] == "user":
                 return redirect('/userHome')
@@ -389,17 +518,44 @@ def validateLogin():
             else:
                 return redirect('/adminHome')
         else:
-            return render_template('error.html', error='Wrong Email address or Password')
-    else:
-        return render_template('error.html', error='Wrong Email address or Password')
+            return showLogin('Wrong Email address or Password')
+
+@app.route('/api/validateLoginBilling', methods=['POST', 'GET'])
+def validateLoginBilling():
+    _username = request.form['inputUsername']
+    _password = request.form['inputPassword']
+
+    con = mysql.connect()
+    cursor = con.cursor()
+    cursor.callproc('sp_validateLogin', (_username,))
+    data = cursor.fetchall()
+
+    if len(data) > 0:
+        if check_password_hash(str(data[0][2]), _password):
+            session['user'] = data[0][0]
+            if data[0][13] == "user":
+                return redirect('/billing')
+        else:
+            return showLogin('Wrong Email address or Password')
+
+userHeadings = ("First Name", "Last Name", "Street", "City",
+                "State", "Zip", "Phone Number", "DOB", "Sex", "Email")
 
 
 @app.route('/userHome')
 def userHome():
-    
-    return render_template('userHome.html')
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    id = session['user']
+    cursor.callproc('sp_getUser', (id,))
+    data = cursor.fetchall()
+    return render_template('userhome.html', headings=userHeadings, data=data[0])
 
-appointmentHeadings=("Appointment Date", "Description","Physician First Name", "Physician last Name")
+
+appointmentHeadings = ("Appointment Date", "Description",
+                       "Physician First Name", "Physician last Name")
+
+
 @app.route('/seeOwnAppointment')
 def seeOwnAppointment():
     conn = mysql.connect()
@@ -407,9 +563,13 @@ def seeOwnAppointment():
     id = session['user']
     cursor.callproc('sp_getAppointments', (id,))
     data = cursor.fetchall()
-    return render_template('seeOwnAppointment.html',headings=appointmentHeadings,data=data)
+    return render_template('seeOwnAppointment.html', headings=appointmentHeadings, data=data)
 
-phyAppHeadings=("Appointment Date", "Description","Patient Id","Patient First Name", "Patient last Name")
+
+phyAppHeadings = ("Appointment Date", "Description",
+                  "Patient Id", "Patient First Name", "Patient last Name")
+
+
 @app.route('/seePhysSchedule')
 def seePhysSchedul():
     conn = mysql.connect()
@@ -417,10 +577,12 @@ def seePhysSchedul():
     id = session['user']
     cursor.callproc('sp_getPhysicianAppointments', (id,))
     data = cursor.fetchall()
-    return render_template('seePhysSchedule.html',headings=phyAppHeadings,data=data)
+    return render_template('seePhysSchedule.html', headings=phyAppHeadings, data=data)
+
 
 @app.route('/api/signup', methods=['POST'])
 def signUp():
+    errors = []
     _first = request.form['inputFirst']
     _last = request.form['inputLast']
     _street = request.form['inputStreet']
@@ -431,11 +593,32 @@ def signUp():
     _dob = request.form['inputDOB']
     _sex = request.form['inputSex']
     _email = request.form['inputEmail']
-    _username=request.form['inputUsername']
+    _username = request.form['inputUsername']
     _password = request.form['inputPassword']
+    if not bool(re.match(r"^\d{2}/\d{2}/\d{4}$", _dob)):
+        errors.append("DOB is not in MM/DD/YYYY format")
 
-    if all((_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email)):
+    if not bool(re.match("^\d{3}-\d{3}-\d{4}$", _phone)):
+        errors.append("Phone number is not in XXX-XXX-XXXX format")
 
+    if len(_zip) != 5:
+        errors.append("Invalid zipcode")
+
+    if _sex not in ['M', 'F', 'Other']:
+        errors.append("Gender must be one of the following: M, F, Other")
+
+    numCapitals = sum([1 for ch in _password if ch.isupper()])
+    numNumbers = sum([1 for ch in _password if ch.isdigit()])
+    specialChar = sum([1 for ch in _password if ch in "!?$"])
+    if numCapitals == 0 or numNumbers == 0 or specialChar == 0 or len(_password)<8:
+        errors.append("Password must contain at least: 1 number, 1 capital letter, 1 special character (!?$) and be at least 8 characters long")
+
+    if not bool(re.match(r"^\S+@\S+\.\S+$", _email)):
+        errors.append("Email not in correct example@email.com format")
+
+    if errors:
+        return showSignUp(_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, errors)
+    else:
         password = generate_password_hash(_password)
         conn = mysql.connect()
         cursor = conn.cursor()
@@ -443,18 +626,22 @@ def signUp():
                         (_username, password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email))
         data = cursor.fetchall()
 
-        if len(data) == 1:
+        if str(data[0])!='(\'Username exists!!\',)':
             conn.commit()
             session['user'] = data[0][0]
             return redirect('/userHome')
-        else:
-            return json.dumps({'error': str(data[0])})
-    else:
-        return json.dumps({'html': '<span>Enter the required fields</span>'})
+        elif str(data[0])=='(\'Username exists!!\',)':
+            errors.append("Username already exists!")
+            # json.dumps({'error': str(data[1])})
+            return showSignUp(_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, errors)
 
+@app.route('/signupPhysician')
+def showSignUpPhysician(username='', pwd='', first='', last='', street='', city='', state='', zip='', phone='', dob='', sex='', email='', spec='', rank='', dID='', cID='', errors=''):
+    return render_template('createPhysician.html', username=username, password=pwd, first=first, last=last, street=street, city=city, state=state, zip=zip, phone=phone, dob=dob, sex=sex, email=email, spec=spec, rank=rank, dID=dID, cID=cID, errors=errors)
 
 @app.route('/api/signupPhysician', methods=['POST'])
 def signupPhysician():
+    errors = []
     _username = request.form['inputUsername']
     _password = request.form['inputPassword']
     _first = request.form['inputFirst']
@@ -467,13 +654,46 @@ def signupPhysician():
     _dob = request.form['inputDOB']
     _sex = request.form['inputSex']
     _email = request.form['inputEmail']
-    _spec = request.form['Specialization']
-    _rank = request.form['Rank']
-    _deptId = request.form['DepartmentID']
-    _clinicId = request.form['ClinicID']
+    _spec = request.form['inputSpec']
+    _rank = request.form['inputRank']
+    _deptId = request.form['inputDept']
+    _clinicId = request.form['inputClinic']
 
-    if all((_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _spec,
-            _rank, _deptId, _clinicId)):
+    if not bool(re.match(r"^\d{2}/\d{2}/\d{4}$", _dob)):
+        errors.append("DOB is not in MM/DD/YYYY format")
+
+    if not bool(re.match("^\d{3}-\d{3}-\d{4}$", _phone)):
+        errors.append("Phone number is not in XXX-XXX-XXXX format")
+
+    if len(_zip) != 5:
+        errors.append("Invalid zipcode")
+
+    if _sex not in ['M', 'F', 'Other']:
+        errors.append("Gender must be one of the following: M, F, Other")
+
+    numCapitals = sum([1 for ch in _password if ch.isupper()])
+    numNumbers = sum([1 for ch in _password if ch.isdigit()])
+    specialChar = sum([1 for ch in _password if ch in "!?$"])
+    if numCapitals == 0 or numNumbers == 0 or specialChar == 0 or len(_password)<8:
+        errors.append("Password must contain at least: 1 number, 1 capital letter, 1 special character (!?$) and be at least 8 characters long")
+
+    if not bool(re.match(r"^\S+@\S+\.\S+$", _email)):
+        errors.append("Email not in correct example@email.com format")
+
+    try:
+        int(_deptId)
+    except:
+        errors.append("Dept ID must be a number")
+
+    try:
+        int(_clinicId)
+    except:
+        errors.append("Clinic ID must be a number")
+
+    if errors:
+        return showSignUpPhysician(_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _spec,_rank, _deptId, _clinicId, errors)
+
+    else:
         password = generate_password_hash(_password)
         conn = mysql.connect()
         cursor = conn.cursor()
@@ -486,46 +706,21 @@ def signupPhysician():
             conn.commit()
             return redirect('/adminHome')
         else:
-            return json.dumps({'error': str(data[0])})
-    else:
-        return json.dumps({'html': '<span>Enter the required fields</span>'})
+            errors.append("Username already exists!")
+            # json.dumps({'error': str(data[0])})
+            return showSignUpPhysician(_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob,
+                                       _sex, _email, _spec, _rank, _deptId, _clinicId, errors)
+
+@app.route('/signupNurse')
+def showSignUpNurse(username='', password='', first='', last='', street='', city='', state='', zip='', phone='', dob='',
+                                       sex='', email='', classification='', deptId='', clinicId='', errors=[]):
+    return render_template('createNurse.html', username=username, password=password, first=first, last=last, street=street, city=city, state=state, zip=zip, phone=phone, dob=dob,
+                                       sex=sex, email=email, classification=classification , deptId=deptId, clinicId=clinicId, errors=errors)
+
 
 @app.route('/api/signupNurse', methods=['POST'])
 def signupNurse():
-    _username=request.form['inputUsername']
-    _password = request.form['inputPassword']
-    _first = request.form['inputFirst']
-    _last = request.form['inputLast']
-    _street = request.form['inputStreet']
-    _city = request.form['inputCity']
-    _state = request.form['inputState']
-    _zip = request.form['inputZip']
-    _phone = request.form['inputPhone']
-    _dob = request.form['inputDOB']
-    _sex = request.form['inputSex']
-    _email = request.form['inputEmail']
-    _classification= request.form['Classification']
-    _deptId= request.form['DepartmentID']
-    _clinicId= request.form['ClinicID']
-
-    if all( (_username,_password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email,_classification,_deptId,_clinicId)):
-        password = generate_password_hash(_password)
-        conn = mysql.connect()
-        cursor = conn.cursor()
-        cursor.callproc('sp_createNurse', (_username, password,_first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email,_classification,_deptId,_clinicId))
-        data = cursor.fetchall()
-
-        if len(data) == 0:
-            conn.commit()
-            return redirect('/adminHome')
-        else:
-            return json.dumps({'error': str(data[0])})
-    else:
-        return json.dumps({'html': '<span>Enter the required fields</span>'})
-
-
-@app.route('/api/signupAdmin', methods=['POST'])
-def signupAmin():
+    errors = []
     _username = request.form['inputUsername']
     _password = request.form['inputPassword']
     _first = request.form['inputFirst']
@@ -538,41 +733,141 @@ def signupAmin():
     _dob = request.form['inputDOB']
     _sex = request.form['inputSex']
     _email = request.form['inputEmail']
-    _type = request.form['Type']
-    _deptId = int(request.form['DepartmentID'])
+    _classification = request.form['inputClassification']
+    _deptId = request.form['inputDept']
+    _clinicId = request.form['inputClinic']
 
-    if all((_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _type,
-            _deptId)):
+    if not bool(re.match(r"^\d{2}/\d{2}/\d{4}$", _dob)):
+        errors.append("DOB is not in MM/DD/YYYY format")
+
+    if not bool(re.match("^\d{3}-\d{3}-\d{4}$", _phone)):
+        errors.append("Phone number is not in XXX-XXX-XXXX format")
+
+    if len(_zip) != 5:
+        errors.append("Invalid zipcode")
+
+    if _sex not in ['M', 'F', 'Other']:
+        errors.append("Gender must be one of the following: M, F, Other")
+
+    numCapitals = sum([1 for ch in _password if ch.isupper()])
+    numNumbers = sum([1 for ch in _password if ch.isdigit()])
+    specialChar = sum([1 for ch in _password if ch in "!?$"])
+    if numCapitals == 0 or numNumbers == 0 or specialChar == 0 or len(_password)<8:
+        errors.append("Password must contain at least: 1 number, 1 capital letter, 1 special character (!?$) and be at least 8 characters long")
+
+    if not bool(re.match(r"^\S+@\S+\.\S+$", _email)):
+        errors.append("Email not in correct example@email.com format")
+
+    try:
+        int(_deptId)
+    except:
+        errors.append("Dept ID must be a number")
+
+    try:
+        int(_clinicId)
+    except:
+        errors.append("Clinic ID must be a number")
+
+    if errors:
+        return showSignUpNurse(_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _classification, _deptId, _clinicId, errors)
+
+    else:
+        password = generate_password_hash(_password)
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.callproc('sp_createNurse', (_username, password, _first, _last, _street, _city,
+                        _state, _zip, _phone, _dob, _sex, _email, _classification, _deptId, _clinicId))
+        data = cursor.fetchall()
+
+        if len(data) == 0:
+            conn.commit()
+            return redirect('/adminHome')
+        else:
+            errors.append("Username already exists!")
+            # json.dumps({'error': str(data[0])})
+            return showSignUpNurse(_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob,
+                                   _sex, _email, _classification, _deptId, _clinicId, errors)
+
+@app.route('/signupAdmin')
+def showSignUpAdmin(username='', pwd='', first='', last='', street='', city='', state='', zip='', phone='', dob='', sex='', email='', dID='', errors=''):
+    return render_template("createAdmin.html", username=username, password=pwd, first=first, last=last, street=street, city=city, state=state, zip=zip, phone=phone, dob=dob, sex=sex, email=email, dID=dID, errors=errors)
+
+@app.route('/api/signupAdmin', methods=['POST'])
+def signupAmin():
+    errors = []
+    _username = request.form['inputUsername']
+    _password = request.form['inputPassword']
+    _first = request.form['inputFirst']
+    _last = request.form['inputLast']
+    _street = request.form['inputStreet']
+    _city = request.form['inputCity']
+    _state = request.form['inputState']
+    _zip = request.form['inputZip']
+    _phone = request.form['inputPhone']
+    _dob = request.form['inputDOB']
+    _sex = request.form['inputSex']
+    _email = request.form['inputEmail']
+    _deptId = int(request.form['inputDept'])
+
+    if not bool(re.match(r"^\d{2}/\d{2}/\d{4}$", _dob)):
+        errors.append("DOB is not in MM/DD/YYYY format")
+
+    if not bool(re.match("^\d{3}-\d{3}-\d{4}$", _phone)):
+        errors.append("Phone number is not in XXX-XXX-XXXX format")
+
+    if len(_zip) != 5:
+        errors.append("Invalid zipcode")
+
+    if _sex not in ['M', 'F', 'Other']:
+        errors.append("Gender must be one of the following: M, F, Other")
+
+    numCapitals = sum([1 for ch in _password if ch.isupper()])
+    numNumbers = sum([1 for ch in _password if ch.isdigit()])
+    specialChar = sum([1 for ch in _password if ch in "!?$"])
+    if numCapitals == 0 or numNumbers == 0 or specialChar == 0 or len(_password)<8:
+        errors.append("Password must contain at least: 1 number, 1 capital letter, 1 special character (!?$) and be at least 8 characters long")
+
+    if '@' not in _email or '.' not in _email:
+        errors.append("Email is not in email@example.com format")
+
+    try:
+        int(_deptId)
+    except:
+        errors.append("Dept ID must be a number")
+
+    if errors:
+        return showSignUpAdmin(_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _deptId, errors)
+
+    else:
         password = generate_password_hash(_password)
         conn = mysql.connect()
         cursor = conn.cursor()
         cursor.callproc('sp_createAdmin', (
-            _username, password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _type,
+            _username, password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email,
             _deptId))
         data = cursor.fetchall()
         if len(data) == 0:
             conn.commit()
             return redirect('/adminHome')
         else:
-            return json.dumps({'error': data})
-    else:
-        return json.dumps({'html': '<span>Enter the required fields</span>'})
-
+            errors.append("Username already exists!")
+            # json.dumps({'error': str(data[0])})
+            return showSignUpAdmin(_username, _password, _first, _last, _street, _city, _state, _zip, _phone, _dob, _sex, _email, _deptId, errors)
 
 @app.route('/api/addBed', methods=['POST'])
 def addBed():
-    idbed= request.form['idBed']
-    idclinic= request.form['idClinic']
-    room_number= request.form['roomNum']
-    occupancy_status= request.form['status']
-    idpatient= request.form['idPatient']
+    idbed = request.form['idBed']
+    idclinic = request.form['idClinic']
+    room_number = request.form['roomNum']
+    occupancy_status = request.form['status']
+    idpatient = request.form['idPatient']
 
-
-    if all( (idbed,idclinic,room_number,occupancy_status,idpatient)):
+    if all((idbed, idclinic, room_number, occupancy_status, idpatient)):
 
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.callproc('sp_addBeds', (idbed,idclinic,room_number,occupancy_status,idpatient))
+        cursor.callproc('sp_addBeds', (idbed, idclinic,
+                        room_number, occupancy_status, idpatient))
         data = cursor.fetchall()
 
         if len(data) == 0:
@@ -583,12 +878,12 @@ def addBed():
     else:
         return json.dumps({'html': '<span>Enter the required fields</span>'})
 
+
 @app.route('/api/deleteBed', methods=['POST'])
 def adddeleteBed():
-    idbed= request.form['idBed']
+    idbed = request.form['idBed']
 
-
-    if all( (idbed)):
+    if all((idbed)):
 
         conn = mysql.connect()
         cursor = conn.cursor()
@@ -602,6 +897,7 @@ def adddeleteBed():
             return json.dumps({'error': str(data[0])})
     else:
         return json.dumps({'html': '<span>Enter the required fields</span>'})
+
 
 @app.route('/api/assignBed', methods=['POST'])
 def assignBed():
@@ -653,7 +949,7 @@ def assignBedAdmin():
     idbed= request.form['idBed']
     idpatient=request.form['idPatient']
 
-    if all( (idbed,idpatient)):
+    if all((idbed, idpatient)):
 
         conn = mysql.connect()
         cursor = conn.cursor()
@@ -726,7 +1022,8 @@ def deleteUser(username):
 def createPhysician(uname, pwd, fname, lname, st, city, state, zip, ph, dob, s, e, spec, rank, dID, cID):
     conn = mysql.connect()
     cursor = conn.cursor()
-    cursor.callproc('sp_createPhysician', (uname, pwd, fname, lname, st, city, state, zip, ph, dob, s, e, spec, rank, dID, cID,))
+    cursor.callproc('sp_createPhysician', (uname, pwd, fname, lname,
+                    st, city, state, zip, ph, dob, s, e, spec, rank, dID, cID,))
     conn.commit()
 
 
@@ -735,6 +1032,57 @@ def deleteSchedule(pid):
     cursor = conn.cursor()
     cursor.callproc('sp_deleteSchedule', (pid,))
     conn.commit()
+
+def createStatement(patientID, balance, due_date):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_createStatement', (patientID, balance, due_date,))
+    conn.commit()
+
+def deleteStatement(statementID, patientID):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_deleteStatement', (statementID, patientID))
+    conn.commit()
+
+def createInvoice(statementID, date, charge, insurance, total, desc):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_createInvoice', (statementID, date, charge, insurance, total, desc,))
+    conn.commit()
+
+def deleteInvoice(statementid):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_getInvoices', (statementid,))
+    invoices = cursor.fetchall()
+    for inID, sid, date, charge, insurance, total, des in invoices:
+        cursor.callproc('sp_deleteInvoice', (inID,))
+        conn.commit()
+
+def getStatementId(patientID, date):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_getStatements', (patientID,))
+    statements = cursor.fetchall()
+    for sid, pid, balance, duedate, paid in statements:
+        if date == duedate:
+            return sid
+
+def deletePaymentHistory(statementID, userid):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_deletePaymentHistory', (userid,statementID,))
+    conn.commit()
+
+def deleteCUMessage(fname, lname, email, message):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_getCUMessageID', (fname, lname, email, message,))
+    messageID = cursor.fetchall()[0]
+    cursor.callproc('sp_deleteCUMessage', (messageID,))
+    conn.commit()
+
 ###############################
 def msgAlert(email_to):
         """Send the text to the email address associated with the entered number."""

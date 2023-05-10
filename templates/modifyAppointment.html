@@ -23,9 +23,6 @@
 						<a href="/appointment" class="nav-link active" aria-current="page">Appointments</a>
 					</li>
 					<li class="nav-item">
-						<a href="/billing" class="nav-link" aria-current="page">Billing</a>
-					</li>
-					<li class="nav-item">
 						<a href="/account" class="nav-link">Account</a>
 					</li>
 					<li class="nav-item">
@@ -70,6 +67,24 @@
 						cursor: pointer;
 					}
 				</style>
+                <form id="form-appointment" action="/api/saveAppointment" method="POST">
+					<input name="inputID" id="inputID" class="form-control" value="{{selected[0]}}" type="hidden" required autofocus />
+                    <label for="inputDate" class="fw-bold"> Select a date </label>
+					<input name="inputDate" id="inputDate" class="form-control" value="{{selected[1]}}" type="date" required autofocus />
+					<label for="inputTime" class="fw-bold"> Select a time </label>
+					<input name="inputTime" id="inputTime" class="form-control" value="{{selected[2]}}" type="time" required autofocus />
+                    <label for="physician" >Choose a Physician:</label>
+                    <select name="physician" id="physician" required autofocus>
+                        <option value="{{selected_phys}}">{{selected_phys}}</option>
+                        {% for n in p_names %}
+                            <option value="{{n}}">{{n}}</option>
+                        {% endfor %}
+                    </select><br>
+				
+					<label for="inputReason" class="fw-bold"> Reason for visit </label>
+					<input name="inputReason" id="inputReason" class="form-control" value="{{selected[5]}}" required autofocus />
+					<button class="btn btn-lg btn-primary btn-block" type="submit"> Submit </button>
+                </form>
 				<appointments>
 					<table>
 						<thead>
@@ -84,8 +99,8 @@
 						{% for appointment in appointments %}
 						<tr>
 							<td>{{ appointment[1] }}</td>
+							<td>{{ appointment[2] }}</td>
 							<td>{{ appointment[3] }}</td>
-							<td>{{ appointment[4] }}</td>
 							<td>
 								<a href="{{ url_for('modifyAppointment', appointment_id=appointment[0]) }}">Modify</a>
 								<a href="{{ url_for('deleteAppointment', appointment_id=appointment[0]) }}">Delete</a>
