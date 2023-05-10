@@ -1089,6 +1089,19 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
+-- procedure sp_getPatientEmailV2
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getPatientEmailV2`(IN p_idpatient INT)
+BEGIN
+    SELECT email FROM `user` WHERE `user`.iduser = p_idpatient;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
 -- procedure sp_dischargePatient
 -- -----------------------------------------------------
 

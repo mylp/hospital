@@ -20,7 +20,7 @@ mysql = MySQL()
 
 def connect_to_db(app):
     app.config['MYSQL_DATABASE_USER'] = 'root'
-    app.config['MYSQL_DATABASE_PASSWORD'] = 'PepeSilvia1259#12!'
+    app.config['MYSQL_DATABASE_PASSWORD'] = 'Gooster1225!2'
     app.config['MYSQL_DATABASE_DB'] = 'test'
     app.config['MYSQL_DATABASE_HOST'] = 'localhost'
     app.config['SECRET_KEY'] = '1234567890'
@@ -1116,7 +1116,10 @@ def createBillAdmin():
                     cursor.fetchall()
                     conn.commit()
                 # notif to patient
-            msgAlert(pid, 'You have a new bill posted, check your account!')
+            cursor.callproc('sp_getPatientEmailV2', (pid,))
+            email = cursor.fetchall()
+            patientEmail = email[0][0];
+            msgAlert(patientEmail, 'You have a new bill posted, check your account!')
             return showCreateBill([],[],[],'Bill created and patient has been notified!', "", [])
 
 # for testing purposes only
