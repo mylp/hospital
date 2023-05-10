@@ -281,27 +281,6 @@ insert into billRates values (6, "Physical Therapy", 200);
 insert into billRates values (7, "Labs", 100);
 
 -- -----------------------------------------------------
--- procedure sp_addContactUsMessage
--- -----------------------------------------------------
-
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addContactUsMessage`(
-    IN first_name VARCHAR(45),
-    IN last_name VARCHAR(45),
-    IN email VARCHAR(45),
-    IN message MEDIUMTEXT
-)
-BEGIN
-	INSERT INTO contact_us_messages
-    (first_name, last_name, email, message)
-    VALUES
-    (first_name, last_name, email, message);
-END$$
-
-DELIMITER ;
-
--- -----------------------------------------------------
 -- procedure sp_addSummary
 -- -----------------------------------------------------
 
