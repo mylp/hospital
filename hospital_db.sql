@@ -348,20 +348,6 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
--- procedure sp_getContactUsMessages
--- -----------------------------------------------------
-
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_assignBed`(In p_idbed INT, IN p_idpatient INT)
-BEGIN
-   UPDATE bed SET `idpatient`=p_idpatient WHERE idbed = p_idbed;
-
-END$$
-
-DELIMITER ;
-
--- -----------------------------------------------------
 -- procedure sp_changePassword
 -- -----------------------------------------------------
 
@@ -788,10 +774,9 @@ DELIMITER ;
 
 DELIMITER $$
 USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_assignBed`(In p_idbed INT, IN p_idpatient INT,IN p_idphysician INT)
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getPatientsFromAppt`()
 BEGIN
-      UPDATE bed SET `idpatient`=p_idpatient WHERE idbed = p_idbed AND EXISTS (select idpatient,idphysician from appointment where p_idpatient=idpatient AND p_idphysician=idphysician);
-    
+	SELECT user.iduser, user.first_name, user.last_name FROM appointment INNER JOIN user  on appointment.idpatient = user.iduser where appointment.appointment_date < now();
 END$$
 
 DELIMITER ;
