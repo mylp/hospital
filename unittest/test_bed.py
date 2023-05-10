@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from app import app, connect_to_db
 
 
-class TestAppointment(unittest.TestCase):
+class TestBed(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):

@@ -8,7 +8,7 @@ import unittest
 
 
 
-class TestLogin(unittest.TestCase):
+class TestNotification(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Get the Flask test client

@@ -7,7 +7,7 @@ from app import app, connect_to_db, deleteCUMessage
 import unittest
 
 
-class TestLogin(unittest.TestCase):
+class TestContactUs(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Get the Flask test client
