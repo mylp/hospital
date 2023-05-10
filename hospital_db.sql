@@ -192,7 +192,6 @@ CREATE TABLE IF NOT EXISTS `test`.`statement` (
   `idpatient` VARCHAR(45) NOT NULL,
   `balance_due` INT NOT NULL,
   `due_date` VARCHAR(45) NOT NULL,
-  `paid` INT NOT NULL,
   PRIMARY KEY (`idstatement`))
 ENGINE = InnoDB
 AUTO_INCREMENT = 4
@@ -232,6 +231,26 @@ USE `test` ;
 ---------
 INSERT INTO `test`.`user` (`username`, `password`, `first_name`, `last_name`, `street`, `city`, `state`, `zip`, `phone`, `date_of_birth`, `sex`, `email`, `type`) VALUES ('admin', 'admin', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'admin');
 
+
+-- -----------------------------------------------------
+-- Table `test`.`billRates`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `test`.`billRates` (
+  `rateID` INT NOT NULL,
+  `description` VARCHAR(100) NOT NULL,
+  `charge` INT NOT NULL,
+  PRIMARY KEY (`rateID`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+insert into billRates values (1, "Office Visit", 50);
+insert into billRates values (2, "General Surgery", 3000);
+insert into billRates values (3, "X-Ray", 100);
+insert into billRates values (4, "Medication Refill", 30);
+insert into billRates values (5, "Room Charge", 4000);
+insert into billRates values (6, "Physical Therapy", 200);
+insert into billRates values (7, "Labs", 100);
 
 -- -----------------------------------------------------
 -- procedure sp_Identify_UserType
@@ -385,7 +404,6 @@ DELIMITER $$
 USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createInvoice`(
 	IN statement INT,
-    IN invoice_date DATE,
     IN charge INT,
     IN insurance INT,
     IN total INT,
@@ -394,10 +412,10 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createInvoice`(
 BEGIN
 	INSERT INTO invoice
     (idstatement, `date`, charge, insurance, total, `description`)
-    VALUES (statement, invoice_date, charge, insurance, charge-insurance, `description`);
+    VALUES (statement, current_date, charge, insurance, total, `description`);
 
     UPDATE statement
-    SET balance_due = balance_due + charge - insurance
+    SET `balance_due` = `balance_due` + total
     WHERE idstatement = statement;
 END$$
 
@@ -525,12 +543,13 @@ USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createStatement`(
 	IN patientid INT,
     IN balance INT,
-    IN due VARCHAR(45)
+    IN due_date VARCHAR(45)
 )
 BEGIN
 	INSERT INTO statement
-    (idpatient, balance_due, due_date, paid)
-    VALUES (patientid, balance, due, FALSE);
+    (idpatient, balance_due, due_date)
+    VALUES (patientid, balance, due_date);
+    SELECT LAST_INSERT_ID();
 END$$
 
 DELIMITER ;
@@ -722,6 +741,20 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
+-- procedure sp_getPatientsFromAppt
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getPatientsFromAppt`()
+BEGIN
+	SELECT user.iduser, user.first_name, user.last_name FROM appointment INNER JOIN user  on appointment.idpatient = user.iduser where appointment.appointment_date < now();
+END$$
+
+DELIMITER ;
+
+
+-- -----------------------------------------------------
 -- procedure sp_getPhysicianNameByID
 -- -----------------------------------------------------
 
@@ -840,9 +873,9 @@ COLLATE = utf8mb4_0900_ai_ci;
 -- -----------------------------------------------------
 DELIMITER $$
 USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_paymentHistory`(IN p_userid INT, IN statementID INT)
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_paymentHistory`(IN p_userid INT, IN sID INT)
 BEGIN
-SELECT * from paymentHistory where userID=p_userid and statementID=statementID;
+SELECT * from paymentHistory where userID=p_userid and statementID=sID;
 END$$
 
 DELIMITER ;
@@ -980,6 +1013,36 @@ INSERT INTO paymentHistory (date, amount, userID, statementID) VALUES (now(), (o
 END $$
 DELIMITER ;
 
+-- -----------------------------------------------------
+-- Table `test`.`insurance`
+-- -----------------------------------------------------
+DELIMITER $$
+USE `test`$$
+CREATE TABLE IF NOT EXISTS `test`.`insurance` (
+  `insuranceID` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(45) NOT NULL,
+  `discount` FLOAT NOT NULL,
+  `copay` INT NOT NULL,
+  PRIMARY KEY (`insuranceID`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+insert into insurance values (1, 'united', .10,  10);
+insert into insurance values (2, 'bcbs', .15,  20);
+
+-- -----------------------------------------------------
+-- procedure sp_getPatientInsuranceInfo
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getPatientInsuranceInfo`(IN pid INT)
+BEGIN
+	select insurance.name, insurance.discount, insurance.copay from user inner join insurance where user.iduser = pid and user.insurance = insurance.name;
+END$$
+
+DELIMITER ;
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
