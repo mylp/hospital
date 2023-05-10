@@ -1,1 +1,1 @@
-cursor.callproc('sp_getPhysicianNameByID', (id,))
+Adnin

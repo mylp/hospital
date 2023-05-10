@@ -20,7 +20,7 @@ mysql = MySQL()
 
 def connect_to_db(app):
     app.config['MYSQL_DATABASE_USER'] = 'root'
-    app.config['MYSQL_DATABASE_PASSWORD'] = 'Gooster1225!2'
+    app.config['MYSQL_DATABASE_PASSWORD'] = 'PepeSilvia1259#12!'
     app.config['MYSQL_DATABASE_DB'] = 'test'
     app.config['MYSQL_DATABASE_HOST'] = 'localhost'
     app.config['SECRET_KEY'] = '1234567890'
@@ -909,13 +909,14 @@ def adddeleteBed():
 @app.route('/api/assignBed', methods=['POST'])
 def assignBed():
     idbed= request.form['idBed']
+    idpatient=request.form['idpatient']
     id=session['user']
     
     if all( (idbed,id)):
 
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.callproc('sp_assignBed', (idbed,id))
+        cursor.callproc('sp_assignBed', (idbed,idpatient,id,))
         data = cursor.fetchall()
 
         if len(data) == 0:
@@ -937,7 +938,7 @@ def dischargePatient():
 
         conn = mysql.connect()
         cursor = conn.cursor()
-        cursor.callproc('sp_dischargePatient', (int(idpatient),id,summ,))
+        cursor.callproc('sp_dischargePatient', (idpatient,id,summ,))
         data = cursor.fetchall()
         
         cursor.callproc('sp_getPatientEmail', (idpatient,id))
