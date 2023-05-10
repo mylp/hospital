@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+		integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous" />
+	<link href="../static/createBill.css" rel="stylesheet" />
+</head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+
+<body>
+	<div id="help"></div>
+	<div class="container">
+		<div class="header">
+			<nav class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+				<a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
+					<span class="fs-4">R.A.M. Hospital</span>
+				</a>
+				<ul class="nav nav-pills">
+                    <li class="nav-item">
+                        <a href="/adminHome" class="nav-link active">Admin Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/contactUsMessageInbox" class="nav-link">Messages</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/logout" class="nav-link">Log Out</a>
+                    </li>
+				</ul>
+			</nav>
+		</div>
+
+		<div class="p-5 mb-4 bg-light rounded-3">
+			<div class="container-fluid py-5">
+				<h3 class="display-5 fw-bold text-center">Create a Bill</h3>
+				<form id="form-create-bill" action="/api/createBill" method="POST">
+					<ul>
+						{% for error in errors %}
+							<li><p style="color: red;">{{error}}</p></li>
+						{% endfor %}
+					</ul>
+					<p style="color:green;"><i>{{success}}</i></p>
+					<label for='patient' class="sr-only">Choose a patient:</label>
+				<select id='patient' name="patient">
+					<option value='{{cp}}'>{{cp}}</option>
+					{% for p in patients %}
+						<option id="{{p}}" value="{{p}}">{{p}}</option>
+					{% endfor %}
+				</select><br><br>
+					<button class="buttonA" type="button" onclick='add({{rates}})'>Add Invoice</button>
+				  	<button class="buttonR" type="button" onclick="remove()">Remove</button><br><br>
+				<label for='new_1' class="sr-only">Invoice 1:</label>
+				<select id='new_1' name='new_1'>
+					<option id="{{default[1]}}" value="{{default[1]}}">{{default[1]}}</option>
+					{% for rate in rates %}
+						<option id="{{rate}}" value="{{rate}}">{{rate}}</option>
+					{% endfor %}
+				</select><button id="bnew_1" class="buttonA" type="button" onclick="checkValue1()">Create Invoice</button>
+					<div id="add"><br><br>
+<!--						{% for i in items %}-->
+<!--						<label for='new_"+{{i}}+"' class="sr-only">Invoice+{{i}}+:</label>-->
+<!--						<select id='new_"+{{i}}+"' name='new_"+{{i}}+"'>-->
+<!--							<option id="{{i[i]}}" value="{{i[i]}}">{{i[i]}}</option>-->
+<!--							{% for rateq in rates %}-->
+<!--								<option id="{{rateq}}" value="{{rateq}}">{{rateq}}</option>-->
+<!--							{% endfor %}-->
+<!--						</select>-->
+<!--						{% endfor %}-->
+					</div>
+
+				  <input type="hidden" value="1" id="total_chq" name="total_chq">
+					<input id='submit' type="submit" value="Create Bill" />
+
+					</form>
+			</div>
+		</div>
+	</div>
+</body>
+
+<script>
+function add(rates){
+	  var options = "";
+	  let i = 0;
+	  let max = rates.length;
+
+	  while (i < max) {
+			options = options + "<option value='"+String(rates[i])+"'>"+String(rates[i])+"</option>";
+			i++;
+	  };
+      var new_chq_no = parseInt($('#total_chq').val())+1;
+
+
+      var label = "<label for='new_"+new_chq_no+"' id='lnew_"+new_chq_no+"'>"+"Invoice "+new_chq_no+":"+"</label>";
+      var new_input=" <select id='new_"+new_chq_no+"' name='new_"+new_chq_no+"'>"+options+"</select>";
+      var checkButt="<button style='' id='bnew_"+new_chq_no+"' class='buttonA' type='button' onclick='checkValuei("+new_chq_no+")'>Create Invoice</button>"
+      var breaks="<div id='dnew_"+new_chq_no+"'><br><br></div>"
+      $('#add').append(label);
+      $('#add').append(new_input);
+      $('#add').append(checkButt);
+      $('#add').append(breaks);
+      $('#total_chq').val(new_chq_no);
+
+
+
+    };
+    function remove(){
+      var last_chq_no = $('#total_chq').val();
+      if(last_chq_no>1){
+        $('#new_'+last_chq_no).remove();
+        $('#lnew_'+last_chq_no).remove();
+        $('#dnew_'+last_chq_no).remove();
+        $('#bnew_'+last_chq_no).remove();
+        $('#total_chq').val(last_chq_no-1);
+      };
+    };
+	function checkValue1() {
+	var p = document.getElementById('new_1');
+			 var selectedValue = p.options[p.selectedIndex].value;
+				if ( ( selectedValue == '') || (selectedValue == '--choose billing item--') )
+			   {
+			   	document.getElementById('submit').style.color = "red";
+				alert("Please select a billing item for invoice!");
+				return false;
+			   };
+				document.getElementById('bnew_1').style.display = "none";
+				document.getElementById('submit').style.color = "green";
+			   };
+		function checkValuei(i) {
+	var p = document.getElementById('new_'+String(i));
+			 var selectedValue = p.options[p.selectedIndex].value;
+				if ( ( selectedValue == '') || (selectedValue == '--choose billing item--') )
+			   {
+			    document.getElementById('submit').style.color = "red";
+				alert("Please select a billing item for invoice!");
+				return false;
+			   };
+				document.getElementById('bnew_'+String(i)).style.display = "none";
+				document.getElementById('submit').style.color = "green";
+			   };
+</script>
+</html>

@@ -15,7 +15,7 @@ mysql = MySQL()
 
 def connect_to_db(app):
     app.config['MYSQL_DATABASE_USER'] = 'root'
-    app.config['MYSQL_DATABASE_PASSWORD'] = 'PepeSilvia1259#12!'
+    app.config['MYSQL_DATABASE_PASSWORD'] = 'Gooster1225!2'
     app.config['MYSQL_DATABASE_DB'] = 'test'
     app.config['MYSQL_DATABASE_HOST'] = 'localhost'
     app.config['SECRET_KEY'] = '1234567890'
@@ -26,7 +26,7 @@ def connect_to_db(app):
 
 @app.route('/')
 def main(first='', last='', email='', message='', error='', success=''):
-    return render_template('homepage.html', first=first, last=last, message=message, error=error, success=success)
+    return render_template('homepage.html', first=first, last=last, email=email, message=message, error=error, success=success)
 
 
 @app.route('/signup')
@@ -265,10 +265,11 @@ def showStatement(errors=[], payment=0, statementid='', success=''):
     statements = getStatements()
     cursor.callproc('sp_paymentHistory', (session["user"], statementid,))
     history = cursor.fetchall()[::-1]
+    newHistory = [[h[1],h[2]] for h in history if h[2] > 0]
     for s in statements:
         if str(s[0]) == str(statementid):
             outstanding_balance = s[2]
-    return render_template('statement.html', invoices=invoices, outBal=outstanding_balance, id=statementid, history=history, errors=errors, payment=payment, success=success)
+    return render_template('statement.html', invoices=invoices, outBal=outstanding_balance, id=statementid, history=newHistory, errors=errors, payment=payment, success=success)
 
 @app.route('/makePayment', methods=["POST"])
 def makePayment():
@@ -293,7 +294,7 @@ def makePayment():
         errors.append("You cannot pay more than your outstanding balance.")
 
     if errors:
-        return showStatement(errors, payment, statement_id)
+        return showStatement(errors, payment, statement_id, '')
     else:
         conn = mysql.connect()
         cursor = conn.cursor()
@@ -901,6 +902,65 @@ def assignBed():
             return json.dumps({'error': str(data[0])})
     else:
         return json.dumps({'html': '<span>Enter the required fields</span>'})
+
+@app.route('/createBill')
+def showCreateBill(patients=[], rates=[], errors=[], success='', chosenPat="--", chosenItems={}, default={}):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    cursor.callproc('sp_getBillRates')
+    rates = cursor.fetchall()
+    conn.commit()
+    cursor.callproc('sp_getPatientsFromAppt')
+    patients = ['--']
+    patients.extend([el[1]+' '+el[2]+', '+str(el[0]) for el in cursor.fetchall()])
+    l = ['--choose billing item--']
+    l.extend([desc+", $"+str(charge) for desc, charge in rates])
+    return render_template('createBills.html',patients=patients, rates=l, errors=errors, success=success, cp=chosenPat, items=chosenItems, default={})
+
+@app.route('/api/createBill', methods=["POST"])
+def createBillAdmin():
+    # get value of hidden var to determine num of invoice
+    errors = []
+    invoiceCount = int(request.form["total_chq"])
+    patient = request.form['patient']
+    if patient == "--":
+        errors.append("You need to select a patient.")
+
+    invoiceValues = {}
+    default = {}
+    for i in range(1, invoiceCount+1):
+        invoice = request.form["new_"+str(i)]
+        if i == 1:
+            default[i] = invoice
+        invoiceValues[str(i)]=invoice
+        if invoice == "--choose billing item--":
+            errors.append("Select a billing item")
+
+    if errors:
+        return showCreateBill([patient], [], errors, '', request.form['patient'], invoiceValues, default)
+    else:
+        pid = int(patient[patient.index(',')+1:].strip())
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.callproc('sp_getBillRates')
+        rates = cursor.fetchall()
+        cursor.callproc('sp_createStatement',(pid, 0, '06/30/2023',))
+        statementID = cursor.fetchall()
+        if len(statementID) == 1:
+            # get patient insurance info
+            cursor.callproc('sp_getPatientInsuranceInfo', (pid,))
+            insuranceInfo = cursor.fetchall()
+            name, discount, copay = insuranceInfo[0][0], float(insuranceInfo[0][1]), int(insuranceInfo[0][2])
+            if len(insuranceInfo) > 0:
+                for i in range(1,invoiceCount+1):
+                    invoice = request.form['new_'+str(i)]
+                    desc = invoice[:invoice.index(',')]
+                    charge = int(invoice[invoice.index('$')+1:].strip())
+                    cursor.callproc('sp_createInvoice', (statementID[0], charge, int(charge*discount), charge-(int(charge*discount)), desc))
+                    cursor.fetchall()
+                    conn.commit()
+                # notif to patient
+            return showCreateBill([],[],[],'Bill created and patient has been notified!', "", [])
 
 
 # for testing purposes only
