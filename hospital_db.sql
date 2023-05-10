@@ -62,20 +62,6 @@ DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
 -- -----------------------------------------------------
--- Table `test`.`appointment`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `test`.`afterVisit` (
- `id` INT NOT NULL AUTO_INCREMENT,
-  `idappointment` INT NOT NULL ,
-  `summary` MEDIUMTEXT NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE INDEX `id` (`id` ASC) VISIBLE)
-ENGINE = InnoDB
-AUTO_INCREMENT = 4
-DEFAULT CHARACTER SET = utf8mb4
-COLLATE = utf8mb4_0900_ai_ci;
-
--- -----------------------------------------------------
 -- Table `test`.`bed`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `test`.`bed` (
@@ -711,19 +697,6 @@ BEGIN
 	FROM appointment
 	INNER JOIN user ON appointment.idpatient = user.iduser
     where appointment.idphysician=userID;
-END$$
-
-DELIMITER ;
-
--- -----------------------------------------------------
--- procedure sp_getPatientsFromAppt
--- -----------------------------------------------------
-
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getPatientsFromAppt`()
-BEGIN
-	SELECT user.iduser, user.first_name, user.last_name FROM appointment INNER JOIN user  on appointment.idpatient = user.iduser where appointment.appointment_date < now();
 END$$
 
 DELIMITER ;
@@ -1234,20 +1207,6 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
--- procedure sp_addSummary
--- -----------------------------------------------------
-
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addSummary`(p_idappointment INT,p_summary MEDIUMTEXT)
-BEGIN
-insert into bed(idappointment,summary )
-values(p_idappointment, p_summary);
-END$$
-
-DELIMITER ;
-
--- -----------------------------------------------------
 -- procedure sp_getContactUsMessages
 -- -----------------------------------------------------
 
@@ -1334,31 +1293,6 @@ BEGIN
     VALUES
     (`date`, patient_id, physician_id, reason);
     SELECT LAST_INSERT_ID();
-END$$
-
-DELIMITER ;
-
--- -----------------------------------------------------
--- procedure sp_createInvoice
--- -----------------------------------------------------
-
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createInvoice`(
-	IN statement INT,
-    IN charge INT,
-    IN insurance INT,
-    IN total INT,
-    IN `description` MEDIUMTEXT
-)
-BEGIN
-	INSERT INTO invoice
-    (idstatement, `date`, charge, insurance, total, `description`)
-    VALUES (statement, current_date, charge, insurance, total, `description`);
-
-    UPDATE statement
-    SET `balance_due` = `balance_due` + total
-    WHERE idstatement = statement;
 END$$
 
 DELIMITER ;
@@ -1658,20 +1592,6 @@ DELIMITER ;
 
 DELIMITER $$
 USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getInvoices`(IN statement INT)
-BEGIN
-	SELECT * FROM invoice
-    WHERE idstatement = statement;
-END$$
-
-DELIMITER ;
-
--- -----------------------------------------------------
--- procedure sp_getPhysicianAppointments
--- -----------------------------------------------------
-
-DELIMITER $$
-USE `test`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getPhysicianAppointments`(IN userID INT)
 BEGIN
 	SELECT appointment.appointment_date, appointment.description,appointment.idpatient,user.first_name, user.last_name
@@ -1688,10 +1608,9 @@ DELIMITER ;
 
 DELIMITER $$
 USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_assignBed`(In p_idbed INT, IN p_idpatient INT,IN p_idphysician INT)
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getPatientsFromAppt`()
 BEGIN
-      UPDATE bed SET `idpatient`=p_idpatient WHERE idbed = p_idbed AND EXISTS (select idpatient,idphysician from appointment where p_idpatient=idpatient AND p_idphysician=idphysician);
-
+	SELECT user.iduser, user.first_name, user.last_name FROM appointment INNER JOIN user  on appointment.idpatient = user.iduser where appointment.appointment_date < now();
 END$$
 
 DELIMITER ;
@@ -1917,23 +1836,6 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
--- procedure sp_modifyAppointment
--- -----------------------------------------------------
-
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_modifyAppointment`(
-	IN _appointmentID INT, IN _date DATETIME, IN _physID INT, IN reason MEDIUMTEXT
-)
-BEGIN
-	UPDATE appointment
-    SET appointment_date = _date, idphysician = _physID, `description` = reason
-    WHERE idappointment = _appointmentID;
-END$$
-
-DELIMITER ;
-
--- -----------------------------------------------------
 -- procedure sp_setHours
 -- -----------------------------------------------------
 
@@ -2147,19 +2049,6 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
--- procedure sp_getUser
--- -----------------------------------------------------
-
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getUser`(IN p_userid INT)
-BEGIN
-SELECT username,first_name,last_name,street,city,state,zip,phone,date_of_birth,sex,email from user where iduser=p_userid;
-END$$
-
-DELIMITER ;
-
--- -----------------------------------------------------
 -- procedure sp_modifyAppointment
 -- -----------------------------------------------------
 
@@ -2172,53 +2061,6 @@ BEGIN
 	UPDATE appointment
     SET appointment_date = _date, idphysician = _physID, `description` = reason
     WHERE idappointment = _appointmentID;
-END$$
-
-DELIMITER ;
-
--- -----------------------------------------------------
--- procedure sp_setHours
--- -----------------------------------------------------
-
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_setHours`(
-	IN `p_idphysician` INT,
-    IN  `p_monTL` VARCHAR(100),
-    IN  `p_tueTL` VARCHAR(100),
-    IN  `p_wedTL` VARCHAR(100),
-    IN  `p_thursTL` VARCHAR(100),
-    IN  `p_friTL` VARCHAR(100),
-    IN  `p_satTL` VARCHAR(100),
-    IN  `p_sunTL` VARCHAR(100)
-
-
-)
-BEGIN
-    if (select exists (select 1 from schedule where idphysician = p_idphysician))  then
-        update schedule set monTL = p_monTL, tueTL = p_tueTL,
-           wedTL = p_wedTL, thursTL = p_thursTL, friTL = p_friTL, satTL = p_satTL, sunTL = p_sunTL where idphysician = p_idphysician;
-    else
-        insert into schedule (idphysician, monTL, tueTL, wedTL, thursTL, friTL, satTL, sunTL)
-        values (p_idphysician, p_monTL, p_tueTL, p_wedTL, p_thursTL, p_friTL, p_satTL, p_sunTL);
-    end if;
-
-END$$
-
-DELIMITER ;
-
--- -----------------------------------------------------
--- procedure sp_validateLogin
--- -----------------------------------------------------
-
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_validateLogin`(
-IN p_username VARCHAR(20)
-)
-BEGIN
-    SELECT * FROM `user`
-    WHERE `user`.username = p_username;
 END$$
 
 DELIMITER ;
