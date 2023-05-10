@@ -281,24 +281,6 @@ insert into billRates values (6, "Physical Therapy", 200);
 insert into billRates values (7, "Labs", 100);
 
 -- -----------------------------------------------------
--- procedure sp_Identify_UserType
--- -----------------------------------------------------
-
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_Identify_UserType`(username varchar(45), password varchar(45))
-BEGIN
-SELECT CASE
-         WHEN EXISTS (SELECT * FROM physician WHERE physician.username =username) THEN 'Physician'
-         WHEN EXISTS (SELECT * FROM nurse WHERE nurse.username =username) THEN 'Nurse'
-         WHEN EXISTS (SELECT * FROM user WHERE user.username =username) THEN 'User'
-       END;
-
-END$$
-
-DELIMITER ;
-
--- -----------------------------------------------------
 -- procedure sp_addBeds
 -- -----------------------------------------------------
 
