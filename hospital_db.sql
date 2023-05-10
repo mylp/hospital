@@ -281,20 +281,6 @@ insert into billRates values (6, "Physical Therapy", 200);
 insert into billRates values (7, "Labs", 100);
 
 -- -----------------------------------------------------
--- procedure sp_addBeds
--- -----------------------------------------------------
-
-DELIMITER $$
-USE `test`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_addBeds`(idbed INT,idclinic INT,room_number varchar(45),occupancy_status varchar(45),idpatient INT)
-BEGIN
-insert into bed(idbed,idclinic,room_number,occupancy_status,idpatient)
-values(idbed,idclinic,room_number,occupancy_status,idpatient);
-END$$
-
-DELIMITER ;
-
--- -----------------------------------------------------
 -- procedure sp_addContactUsMessage
 -- -----------------------------------------------------
 
