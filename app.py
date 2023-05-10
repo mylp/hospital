@@ -1116,6 +1116,7 @@ def createBillAdmin():
                     cursor.fetchall()
                     conn.commit()
                 # notif to patient
+            msgAlert(pid, 'You have a new bill posted, check your account!')
             return showCreateBill([],[],[],'Bill created and patient has been notified!', "", [])
 
 # for testing purposes only
