@@ -2284,6 +2284,20 @@ END$$
 
 DELIMITER ;
 
+-- -----------------------------------------------------
+-- procedure sp_getCUMessageID
+-- -----------------------------------------------------
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_getCUMessageID`(
+	IN fname VARCHAR(45), IN lname VARCHAR(45), IN email VARCHAR(45), IN message MEDIUMTEXT
+)
+BEGIN
+	select messageID from contact_us_messages where first_name=fname and last_name=lname and email=email and message= message;
+END$$
+
+DELIMITER ;
+
 
 -- -----------------------------------------------------
 -- trigger to insert into paymenthistory

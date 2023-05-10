@@ -1056,13 +1056,21 @@ def createBillAdmin():
             # get patient insurance info
             cursor.callproc('sp_getPatientInsuranceInfo', (pid,))
             insuranceInfo = cursor.fetchall()
-            name, discount, copay = insuranceInfo[0][0], float(insuranceInfo[0][1]), int(insuranceInfo[0][2])
             if len(insuranceInfo) > 0:
+                name, discount, copay = insuranceInfo[0][0], float(insuranceInfo[0][1]), int(insuranceInfo[0][2])
                 for i in range(1,invoiceCount+1):
                     invoice = request.form['new_'+str(i)]
                     desc = invoice[:invoice.index(',')]
                     charge = int(invoice[invoice.index('$')+1:].strip())
                     cursor.callproc('sp_createInvoice', (statementID[0], charge, int(charge*discount), charge-(int(charge*discount)), desc))
+                    cursor.fetchall()
+                    conn.commit()
+            else:
+                for i in range(1,invoiceCount+1):
+                    invoice = request.form['new_'+str(i)]
+                    desc = invoice[:invoice.index(',')]
+                    charge = int(invoice[invoice.index('$')+1:].strip())
+                    cursor.callproc('sp_createInvoice', (statementID[0], charge, 0, charge, desc))
                     cursor.fetchall()
                     conn.commit()
                 # notif to patient
@@ -1096,6 +1104,7 @@ def createStatement(patientID, balance, due_date):
     cursor = conn.cursor()
     cursor.callproc('sp_createStatement', (patientID, balance, due_date,))
     conn.commit()
+    return cursor.fetchall()
 
 def deleteStatement(statementID, patientID):
     conn = mysql.connect()
@@ -1103,10 +1112,10 @@ def deleteStatement(statementID, patientID):
     cursor.callproc('sp_deleteStatement', (statementID, patientID))
     conn.commit()
 
-def createInvoice(statementID, date, charge, insurance, total, desc):
+def createInvoice(statementID, charge, insurance, total, desc):
     conn = mysql.connect()
     cursor = conn.cursor()
-    cursor.callproc('sp_createInvoice', (statementID, date, charge, insurance, total, desc,))
+    cursor.callproc('sp_createInvoice', (statementID, charge, insurance, total, desc,))
     conn.commit()
 
 def deleteInvoice(statementid):

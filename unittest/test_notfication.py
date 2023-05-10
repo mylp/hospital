@@ -7,7 +7,6 @@ from app import app, connect_to_db, deleteUser
 import unittest
 
 
-# MUST RUN TEST_SIGN.PY BEFORE RUNNING TEST_LOGIN.PY, will fix this dependency eventually
 
 class TestLogin(unittest.TestCase):
     @classmethod

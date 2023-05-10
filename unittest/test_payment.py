@@ -9,9 +9,8 @@ class TestPayment(unittest.TestCase):
             connect_to_db(app)
             with testing_client.session_transaction() as s:
                 s['user'] = '100'
-        createStatement(100, 2000, "0000-00-0")
-        statementID = int(getStatementId(100, "0000-00-0"))
-        createInvoice(statementID, "2023-5-2", 2000, 100, 1900, 'testing payment')
+        statementID = int(createStatement(100, 2000, "0000-00-0")[0][0])
+        createInvoice(statementID, 2000, 100, 1900, 'testing payment')
 
         response = testing_client.post('/makePayment', data=dict(
             statementID=statementID,
