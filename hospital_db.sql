@@ -800,6 +800,44 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+
+
+-- -----------------------------------------------------
+-- procedure sp_afterVisit
+-- -----------------------------------------------------
+
+DELIMITER $$
+USE `test`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_afterVisit`(IN patient_id INT, IN physician_id INT,IN p_summary MEDIUMTEXT)
+BEGIN
+    DECLARE patient_exists INT DEFAULT 0;
+    DECLARE appointment_exists INT DEFAULT 0;
+    DECLARE appointment_id INT DEFAULT 0;
+    
+	
+    
+    -- check if patient exists in beds table
+    SELECT COUNT(*) INTO patient_exists FROM bed WHERE idpatient = patient_id;
+    
+    IF patient_exists > 0 THEN
+        -- check if patient exists in appointments table for the given physician
+        SELECT COUNT(*) INTO appointment_exists FROM appointment WHERE idpatient = patient_id AND idphysician = physician_id;
+        
+        IF appointment_exists > 0 THEN
+            
+            
+            select idappointment into appointment_id from appointment where idpatient=patient_id AND idphysician=physician_id;
+            insert into afterVisit(idappointment,summary ) values(appointment_id, p_summary);
+            SELECT CONCAT('AfterVisit summary added for patient with id ', patient_id) AS message;
+        ELSE
+            SELECT CONCAT('Patient with id ', patient_id, ' does not have an appointment with physician with id ', physician_id) AS message;
+        END IF;
+    ELSE
+        SELECT CONCAT('Patient with id ', patient_id, ' does not exist.') AS message;
+    END IF;
+END$$
+
 -- -----------------------------------------------------
 -- procedure sp_modifyBedLocation
 -- -----------------------------------------------------

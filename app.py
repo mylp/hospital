@@ -939,14 +939,49 @@ def dischargePatient():
         cursor = conn.cursor()
         cursor.callproc('sp_dischargePatient', (int(idpatient),id,summ,))
         data = cursor.fetchall()
-
+        
+        cursor.callproc('sp_getPatientEmail', (idpatient,id))
+        email = cursor.fetchall()
+        patientEmail=email[0][0];
+        
         if len(data) != 0:
             conn.commit()
+            msg="You have been discharged"
+            msgAlert(patientEmail,msg);
             return redirect('/physicianHome')
         else:
             return json.dumps({'error': str(data[0])})
     else:
         return json.dumps({'html': '<span>Enter the required fields</span>'})
+
+@app.route('/api/afterVisit', methods=['POST'])
+def afterVisit():
+    
+    idpatient=request.form['idpatient']
+    id=session['user']
+    summ=request.form['idsummary']
+    print()
+    if all( (idpatient,id)):
+
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.callproc('sp_afterVisit', (int(idpatient),id,summ,))
+        data = cursor.fetchall()
+
+        cursor.callproc('sp_getPatientEmail', (idpatient,id))
+        email = cursor.fetchall()
+        patientEmail=email[0][0];
+        
+        if len(data) != 0:
+            conn.commit()
+            msg="Your Physicain has sent you after visit summary"
+            msgAlert(patientEmail,msg);
+            return redirect('/physicianHome')
+        else:
+            return json.dumps({'error': str(data[0])})
+    else:
+        return json.dumps({'html': '<span>Enter the required fields</span>'})
+
 
 
 
@@ -1006,8 +1041,8 @@ def billNotification():
         print(data[0][0]);
         patientEmail=data[0][0];
         print(type(data[0][0]))
-        
-        msgAlert(patientEmail);
+        msg="You have received your bill"
+        msgAlert(patientEmail,msg);
         if len(data) != 0:
             conn.commit()
             return redirect('/physicianHome')
@@ -1158,13 +1193,13 @@ def deleteCUMessage(fname, lname, email, message):
     conn.commit()
 
 ###############################
-def msgAlert(email_to):
+def msgAlert(email_to,msg):
         """Send the text to the email address associated with the entered number."""
         
         now =datetime.datetime.now()
         timeStamp= now.strftime("%I:%M %p %m/%d/%y")
 
-        message="You have recieved an email from R.A.M hospital "+timeStamp+" Check your homepage"
+        message=msg+"  " +timeStamp+" Check your account"
         
         email_from = "rupanti.engr@gmail.com"
         pswd = "ooulipvpkpqhoysd"
